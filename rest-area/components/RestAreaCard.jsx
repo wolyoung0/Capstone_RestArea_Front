@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Amenity } from '../types.js';
-import { fetchFoodRecommendations } from '../services/geminiService.js';
+import { fetchFoodRecommendations } from '../services/apiService.js';
 import { SparklesIcon } from './icons/SparklesIcon.jsx';
 import { HeartIcon } from './icons/HeartIcon.jsx';
 import { MapPinIcon } from './icons/MapPinIcon.jsx';
