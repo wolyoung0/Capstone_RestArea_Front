@@ -7,6 +7,8 @@ import { SearchIcon } from './icons/SearchIcon.jsx';
 import { HeartIcon } from './icons/HeartIcon.jsx';
 import { UserIcon } from './icons/UserIcon.jsx';
 
+import useAppStore from '../stores/appStore.js';
+
 const NavItem = ({ icon, label, active, onClick }) => (
   <button onClick={onClick} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
     active 
@@ -17,8 +19,9 @@ const NavItem = ({ icon, label, active, onClick }) => (
     <span className="ml-2">{label}</span>
   </button>
 );
+export const Header = ({ favoriteCount }) => {
+  const { activeTab, setActiveTab } = useAppStore();
 
-export const Header = ({ activeView, setActiveView }) => {
   return (
     <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-200">
       <nav className="container mx-auto max-w-7xl px-4">
@@ -30,10 +33,10 @@ export const Header = ({ activeView, setActiveView }) => {
             </div>
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-4">
-                <NavItem icon={<RouteIcon className="w-5 h-5"/>} label="경로 검색" active={activeView === 'route'} onClick={() => setActiveView('route')} />
-                <NavItem icon={<MapPinIcon className="w-5 h-5"/>} label="지도" active={activeView === 'map'} onClick={() => setActiveView('map')} />
-                <NavItem icon={<SearchIcon className="w-5 h-5"/>} label="휴게소 검색" active={activeView === 'search'} onClick={() => setActiveView('search')} />
-                <NavItem icon={<HeartIcon className="w-5 h-5"/>} label="즐겨찾기" active={activeView === 'favorites'} onClick={() => setActiveView('favorites')} />
+                <NavItem icon={<RouteIcon className="w-5 h-5"/>} label="경로 검색" active={activeTab === 'route'} onClick={() => setActiveTab('route')} />
+                <NavItem icon={<MapPinIcon className="w-5 h-5"/>} label="지도" active={activeTab === 'map'} onClick={() => setActiveTab('map')} />
+                <NavItem icon={<SearchIcon className="w-5 h-5"/>} label="휴게소 검색" active={activeTab === 'search'} onClick={() => setActiveTab('search')} />
+                <NavItem icon={<HeartIcon className="w-5 h-5"/>} label="즐겨찾기" active={activeTab === 'favorites'} onClick={() => setActiveTab('favorites')} />
               </div>
             </div>
           </div>

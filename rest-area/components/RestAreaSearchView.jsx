@@ -14,8 +14,11 @@ export const RestAreaSearchView = ({ allRestAreas, favorites, onToggleFavorite }
       return [];
     }
     return allRestAreas.filter(area =>
-        area.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        area.highway.toLowerCase().includes(searchTerm.toLowerCase())
+        // 1. area.name이 null이 아닐 때만 toLowerCase를 호출합니다.
+        (area.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+        
+        // 2. area.highway가 null이 아닐 때만 toLowerCase를 호출합니다.
+        (area.highway?.toLowerCase().includes(searchTerm.toLowerCase()) || false)
     );
   }, [searchTerm, allRestAreas]);
 
