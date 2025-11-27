@@ -4,10 +4,13 @@ import { RestAreaCard } from './RestAreaCard.jsx';
 import { RoadIcon } from './icons/RoadIcon.jsx';
 import { ClockIcon } from './icons/ClockIcon.jsx';
 import { MapPinIcon } from './icons/MapPinIcon.jsx';
+import { MapView } from './MapView.jsx';
 
-export const SearchResults = ({ route, favorites, onToggleFavorite }) => {
+export const SearchResults = ({ route, favorites, onToggleFavorite, routePath }) => {
   const hours = Math.floor(route.totalTimeMinutes / 60);
   const minutes = route.totalTimeMinutes % 60;
+
+  console.log("휴게소 데이터 확인:", route.restAreas);
   
   return (
     <div className="mt-12">
@@ -41,11 +44,20 @@ export const SearchResults = ({ route, favorites, onToggleFavorite }) => {
         </div>
       </div>
 
-      <h3 className="text-lg font-bold text-gray-700 mb-4">경로상 휴게소 목록</h3>
-      <div className="space-y-4">
+      {routePath && (
+        <div className="mb-10 rounded-2xl overflow-hidden shadow-md border border-gray-200 h-[400px]">
+            <MapView routePath={routePath} restAreas={route.restAreas}/>
+        </div>
+      )}
+
+      <h3 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+        <span>경로상 휴게소 목록</span>
+        <span className="text-sm font-normal text-gray-400">({route.restAreas.length})</span>
+      </h3>
+      <div className="space-y-6">
         {route.restAreas.map((restArea, index) => (
           <RestAreaCard
-            key={restArea.id}
+            key={restArea.id || index}
             restArea={restArea}
             index={index + 1}
             isFavorite={favorites.includes(restArea.id)}

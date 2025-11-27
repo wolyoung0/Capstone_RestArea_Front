@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { Header } from './components/Header.jsx';
-import { RouteSearch } from './components/RouteSearch.jsx';
+import { RouteSearch } from './src/components/RouteSearch.jsx';
 import { SearchResults } from './components/SearchResults.jsx';
 import { Amenity } from './types.js';
 import { CarIcon } from './components/icons/CarIcon.jsx';
@@ -10,43 +10,6 @@ import { RestAreaSearchView } from './components/RestAreaSearchView.jsx';
 import { FavoritesView } from './components/FavoritesView.jsx';
 import { ALL_REST_AREAS } from './data/restAreas.js';
 
-
-const mockRestAreas = [
-  {
-    id: 1,
-    name: '안성휴게소',
-    direction: '서울방향',
-    highway: '경부고속도로',
-    distanceKm: 45,
-    timeMinutes: 40,
-    amenities: [Amenity.GasStation, Amenity.EVStation, Amenity.ConvenienceStore, Amenity.Pharmacy, Amenity.Cafe],
-  },
-  {
-    id: 2,
-    name: '천안휴게소',
-    direction: '서울방향',
-    highway: '경부고속도로',
-    distanceKm: 85,
-    timeMinutes: 80,
-    amenities: [Amenity.GasStation, Amenity.LPGStation, Amenity.ConvenienceStore, Amenity.Restaurant],
-  },
-  {
-    id: 3,
-    name: '옥천휴게소',
-    direction: '서울방향',
-    highway: '경부고속도로',
-    distanceKm: 120,
-    timeMinutes: 110,
-    amenities: [Amenity.GasStation, Amenity.EVStation, Amenity.ConvenienceStore, Amenity.SleepingRoom, Amenity.ShowerRoom],
-  },
-];
-
-const mockRoute = {
-  totalDistanceKm: 195,
-  totalTimeMinutes: 150,
-  restAreas: mockRestAreas,
-};
-
 const App = () => {
   const [origin, setOrigin] = useState('서울');
   const [destination, setDestination] = useState('부산');
@@ -54,30 +17,17 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeView, setActiveView] = useState('route');
   const [favorites, setFavorites] = useState([1, 3]);
+  const [routePath, setRoutePath] = React.useState(null);
 
-  const handleSearch = useCallback(() => {
-    if (!origin || !destination) {
-      alert('출발지와 목적지를 모두 입력해주세요.');
-      return;
-    }
-    setIsLoading(true);
-    setRoute(null);
-    setTimeout(() => {
-      setRoute(mockRoute);
-      setIsLoading(false);
-    }, 1500);
-  }, [origin, destination]);
-  
-  const handlePresetSearch = useCallback((newOrigin, newDestination) => {
-    setOrigin(newOrigin);
-    setDestination(newDestination);
-    setIsLoading(true);
-    setRoute(null);
-    setTimeout(() => {
-      setRoute(mockRoute);
-      setIsLoading(false);
-    }, 1500);
-  }, []);
+  const handleRestAreas = useCallback((foundRestAreas, summary) => {
+        setRoute({ 
+            // Mock 데이터 대신 실제 API 요약 정보를 사용해야 함
+            totalDistanceKm: summary.distanceKm,
+            totalTimeMinutes: summary.timeMinutes,
+            restAreas: foundRestAreas,
+        });
+        setIsLoading(false);
+    }, []);
 
   const toggleFavorite = useCallback((id) => {
     setFavorites(prev => 
@@ -105,8 +55,8 @@ const App = () => {
               setOrigin={setOrigin}
               destination={destination}
               setDestination={setDestination}
-              onSearch={handleSearch}
-              onPresetSearch={handlePresetSearch}
+              onRouteRestAreas={handleRestAreas} 
+              onRoutePathData={setRoutePath}
             />
 
             {isLoading && (
@@ -116,10 +66,15 @@ const App = () => {
               </div>
             )}
             
-            {route && !isLoading && <SearchResults route={route} favorites={favorites} onToggleFavorite={toggleFavorite} />}
+            {route && !isLoading && 
+              <SearchResults
+                route={route}
+                favorites={favorites}
+                onToggleFavorite={toggleFavorite}
+                routePath={routePath} />}
           </>
         )}
-        {activeView === 'map' && <MapView />}
+        {activeView === 'map' && <MapView routePath={routePath} />}
         {activeView === 'search' && <RestAreaSearchView allRestAreas={ALL_REST_AREAS} favorites={favorites} onToggleFavorite={toggleFavorite} />}
         {activeView === 'favorites' && <FavoritesView favoriteRestAreas={favoritedRestAreas} favorites={favorites} onToggleFavorite={toggleFavorite} />}
 
