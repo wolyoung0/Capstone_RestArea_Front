@@ -1,24 +1,7 @@
 import React from 'react';
 
 export const FilterIcon = (props) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width="24" 
-    height="24" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    {...props}
-  >
-    <line x1="4" x2="20" y1="21" y2="21" />
-    <line x1="4" x2="20" y1="3" y2="3" />
-    <line x1="4" x2="20" y1="12" y2="12" />
-    <line x1="4" x2="8" y1="8" y2="8" />
-    <line x1="16" x2="20" y1="16" y2="16" />
-    <circle cx="14" cy="8" r="2" />
-    <circle cx="10" cy="16" r="2" />
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
   </svg>
 );
