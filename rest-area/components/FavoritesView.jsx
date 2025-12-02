@@ -13,15 +13,18 @@ export const FavoritesView = ({ favoriteRestAreas, favorites, onToggleFavorite }
 
       {favoriteRestAreas.length > 0 ? (
         <div className="space-y-4">
-          {favoriteRestAreas.map((restArea) => (
+          {favoriteRestAreas.map((restArea) => {
+            const uniqueId = restArea.restAreaId || restArea.id ;
+            return(
             <RestAreaCard
-              key={restArea.id}
+              key={uniqueId}
               restArea={restArea}
-              isFavorite={favorites.includes(restArea.id)}
-              onToggleFavorite={() => onToggleFavorite(restArea.id)}
+              isFavorite={favorites.includes(uniqueId)}
+              onToggleFavorite={() => onToggleFavorite(uniqueId)}
               index={0}
             />
-          ))}
+            )}
+          )}
         </div>
       ) : (
         <div className="bg-white rounded-2xl shadow-lg p-8 text-center">

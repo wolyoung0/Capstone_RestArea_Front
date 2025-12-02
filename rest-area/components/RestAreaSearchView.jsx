@@ -49,18 +49,22 @@ export const RestAreaSearchView = ({ allRestAreas, favorites, onToggleFavorite }
             <h2 className="text-xl font-bold text-gray-800 ml-2">인기 휴게소</h2>
           </div>
           <div className="flex overflow-x-auto space-x-4 pb-4 snap-x snap-mandatory scroll-smooth no-scrollbar">
-            {popularRestAreas.map((restArea) => (
-              <div key={restArea.id} className="w-[85vw] max-w-sm flex-shrink-0 snap-start">
+            {popularRestAreas.map((restArea, index) => {
+              const uniqueId = restArea.restAreaId || restArea.id;
+
+              return(
+                <div key={uniqueId} className="w-[85vw] max-w-sm flex-shrink-0 snap-start">
                 <RestAreaCard
                   className="h-full"
                   size="compact"
                   restArea={restArea}
-                  isFavorite={favorites.includes(restArea.id)}
-                  onToggleFavorite={() => onToggleFavorite(restArea.id)}
-                  index={0}
+                  isFavorite={favorites.includes(uniqueId)}
+                  onToggleFavorite={() => onToggleFavorite(uniqueId)}
+                  index={0} //인기순 정렬 전 사용, 데이터 쌓이면 수정
                 />
               </div>
-            ))}
+              )}
+            )}
           </div>
         </div>
       ) : (
@@ -70,15 +74,20 @@ export const RestAreaSearchView = ({ allRestAreas, favorites, onToggleFavorite }
           )}
 
           <div className="space-y-4">
-            {filteredRestAreas.map((restArea) => (
-              <RestAreaCard
-                key={restArea.id}
-                restArea={restArea}
-                isFavorite={favorites.includes(restArea.id)}
-                onToggleFavorite={() => onToggleFavorite(restArea.id)}
-                index={0}
-              />
-            ))}
+            {filteredRestAreas.map((restArea) => {
+              const uniqueId = restArea.restAreaId || restArea.id;
+
+              return(
+                <RestAreaCard
+                  key={uniqueId}
+                  restArea={restArea}
+                  isFavorite={favorites.includes(uniqueId)}
+                  onToggleFavorite={() => onToggleFavorite(uniqueId)}
+                  index={0}
+                />
+              )
+              }
+            )}
           </div>
 
           {filteredRestAreas.length === 0 && (
