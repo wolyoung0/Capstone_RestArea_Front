@@ -6,6 +6,7 @@ import { CarIcon } from './components/icons/CarIcon.jsx';
 import { MapView } from './components/MapView.jsx';
 import { RestAreaSearchView } from './components/RestAreaSearchView.jsx';
 import { FavoritesView } from './components/FavoritesView.jsx';
+import { RestAreaDetailView } from './components/RestAreaDetailView.jsx';
 import { ALL_REST_AREAS } from './data/restAreas.js'; // 만약 API 실패시 비상용으로 로컬 데이터 하나쯤은 남겨둘 수 있음 (선택사항)
 
 import useAppStore from './stores/appStore';
@@ -42,9 +43,12 @@ const App = () => {
   const [restAreaSearchFilters, setRestAreaSearchFilters] = useState({});
   const [restAreaSearchResults, setRestAreaSearchResults] = useState([]); 
 
+  //휴게소 상세정보
+  const [selectedRestArea, setSelectedRestArea] = useState(null);
+
   // (A) 초기 목록 로드 (검색/지도 탭 진입 시)
   useEffect(() => {
-    if (activeTab === 'search' || activeTab === 'map') {
+    if (activeTab === 'search' || activeTab === 'map' || activeTab === 'favorites') {
       const fetchAllRestAreas = async () => {
         try {
           const response = await fetch('http://localhost:8080/api/rest-areas');
@@ -97,6 +101,16 @@ const App = () => {
     setRoute(null);
   }, []);
 
+  const handleOpenDetail = (restArea) => {
+    setSelectedRestArea(restArea);
+    // 필요하다면 브라우저 히스토리 관리 등을 추가할 수 있음
+  };
+
+  // [상세정보 닫기 핸들러]
+  const handleCloseDetail = () => {
+    setSelectedRestArea(null);
+  };
+
   // [휴게소 이름 검색] (검색 탭용)
   const handleRestAreaSearch = async () => {
     const keyword = restAreaSearchFilters.keyword || "";
@@ -132,6 +146,14 @@ const App = () => {
 
   // --- 화면 렌더링 로직 ---
   const renderMainContent = () => {
+    if (selectedRestArea) {
+      return (
+        <RestAreaDetailView 
+            restArea={selectedRestArea} 
+            onBack={handleCloseDetail} 
+        />
+      );
+    }
     switch (activeTab) {
       case 'route':
         return (
@@ -168,6 +190,7 @@ const App = () => {
                     favorites={favorites} 
                     onToggleFavorite={toggleFavorite} 
                     routePath={routePath} 
+                    onDetailClick={handleOpenDetail}
                 />
             )}
           </>
@@ -185,11 +208,12 @@ const App = () => {
             filters={restAreaSearchFilters}
             onFiltersChange={setRestAreaSearchFilters}
             onSearch={handleRestAreaSearch}
+            onDetailClick={handleOpenDetail}
           />
         );
 
       case 'favorites':
-        return <FavoritesView favoriteRestAreas={favoritedRestAreas} favorites={favorites} onToggleFavorite={toggleFavorite} />;
+        return <FavoritesView favoriteRestAreas={favoritedRestAreas} favorites={favorites} onToggleFavorite={toggleFavorite} onDetailClick={handleOpenDetail} />;
       
       case 'restarea-detail':
       case 'menu-detail':

@@ -3,7 +3,7 @@ import { fetchFoodRecommendations } from '../services/apiService.js';
 import { SparklesIcon } from './icons/SparklesIcon.jsx';
 import { HeartIcon } from './icons/HeartIcon.jsx';
 import { MapPinIcon } from './icons/MapPinIcon.jsx';
-import { SlidersHorizontal } from 'lucide-react';
+import { SlidersHorizontal, ChevronRight } from 'lucide-react';
 
 // --- 유틸리티 및 상수 ---
 const Amenity = {
@@ -57,7 +57,7 @@ const FOOD_STYLES = [
 
 const INITIAL_AMENITIES_LIMIT = 8;
 
-export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, className = '' }) => {
+export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, onDetailClick, className = '' }) => {
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState('meal');
   const [showFilters, setShowFilters] = useState(false);
@@ -80,6 +80,13 @@ export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, cl
       setError('추천 메뉴를 불러오는 데 실패했습니다.');
     } finally {
       setIsFetchingRecs(false);
+    }
+  };
+
+  const handleDetailClick = (e) => {
+    e.stopPropagation(); // 카드 클릭 이벤트와 겹치지 않게 방지
+    if (onDetailClick) {
+        onDetailClick(restArea); // ★ 부모에게 "나 눌렸어!" 하고 데이터 전달
     }
   };
 
@@ -175,27 +182,26 @@ export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, cl
             </button>
         </div>
 
-
         {/* ★ [3층] 버튼 영역 (중간에 배치 / 우측 정렬) ★ */}
         {/* 노선명과는 줄바꿈이 되며, 편의시설보다는 위에 위치함 */}
         <div className="flex justify-end items-center gap-2 mt-4 mb-2">
-             {/* 필터 버튼 */}
-             <button
-                onClick={toggleFilters}
-                className={`p-2 rounded-lg border transition-all text-gray-400 border-gray-200 bg-white hover:text-blue-600 hover:border-blue-200 active:scale-95
-                    ${showFilters ? 'bg-blue-50 text-blue-600 border-blue-200 ring-1 ring-blue-100' : ''}`}
-                title="필터"
-            >
-                <SlidersHorizontal className="w-4 h-4" />
-            </button>
+         {/* 필터 버튼 */}
+          <button
+            onClick={toggleFilters}
+            className={`p-2 rounded-lg border transition-all text-gray-400 border-gray-200 bg-white hover:text-blue-600 hover:border-blue-200 active:scale-95
+              ${showFilters ? 'bg-blue-50 text-blue-600 border-blue-200 ring-1 ring-blue-100' : ''}`}
+              title="필터"
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+          </button>
 
-            {/* AI 추천 버튼 */}
-            <button
-                onClick={toggleRecommendations}
-                className={`flex items-center justify-center gap-1 py-2 px-3 rounded-lg shadow-sm font-bold text-xs md:text-sm transition-all active:scale-95 whitespace-nowrap
-                    ${showRecommendations 
-                    ? 'bg-gray-200 text-gray-600 shadow-inner' 
-                    : 'bg-gradient-to-r from-teal-400 to-cyan-500 text-white hover:shadow-md hover:-translate-y-0.5'}`}
+          {/* AI 추천 버튼 */}
+          <button
+            onClick={toggleRecommendations}
+            className={`flex items-center justify-center gap-1 py-2 px-3 rounded-lg shadow-sm font-bold text-xs md:text-sm transition-all active:scale-95 whitespace-nowrap
+              ${showRecommendations 
+                  ? 'bg-gray-200 text-gray-600 shadow-inner' 
+                  : 'bg-gradient-to-r from-teal-400 to-cyan-500 text-white hover:shadow-md hover:-translate-y-0.5'}`}
             >
                 <SparklesIcon className={`w-3.5 h-3.5 ${showRecommendations ? 'text-gray-500' : 'text-white'}`} />
                 <span>{showRecommendations ? '닫기' : 'AI 메뉴 추천'}</span>
@@ -204,7 +210,7 @@ export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, cl
 
 
         {/* ★ [4층] 편의시설 영역 (맨 아래) ★ */}
-        <div className="pt-2 border-t border-dashed border-gray-100">
+        <div className="pt-2 border-t border-dashed border-gray-100 flex justify-between items-end gap-2">
             <div className="flex flex-wrap items-center gap-1.5">
                 {visibleAmenities.length > 0 ? (
                     visibleAmenities.map((amenity, idx) => (
@@ -225,6 +231,13 @@ export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, cl
                     </button>
                 )}
             </div>
+            <button 
+                onClick={handleDetailClick}
+                className="flex-shrink-0 flex items-center gap-0.5 text-xs font-bold text-gray-400 hover:text-blue-600 transition-colors group whitespace-nowrap mb-0.5 ml-2"
+            >
+                상세정보
+                <ChevronRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
+            </button>
         </div>
 
       </div>

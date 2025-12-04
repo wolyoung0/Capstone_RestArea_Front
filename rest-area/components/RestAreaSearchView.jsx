@@ -4,10 +4,17 @@ import { RestAreaCard } from './RestAreaCard.jsx';
 import { SearchIcon } from './icons/SearchIcon.jsx';
 import { FireIcon } from './icons/FireIcon.jsx';
 
-export const RestAreaSearchView = ({ allRestAreas, favorites, onToggleFavorite }) => {
+export const RestAreaSearchView = ({ allRestAreas, favorites, onToggleFavorite, onDetailClick }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const popularRestAreas = useMemo(() => allRestAreas.slice(0, 5), [allRestAreas]);
+//   // (나중에 적용할 코드)
+// const popularRestAreas = useMemo(() => {
+//     // 좋아요(viewCount)가 많은 순서대로 정렬하고 5개 자르기
+//     return [...allRestAreas]
+//         .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
+//         .slice(0, 5);
+// }, [allRestAreas]);
 
   const filteredRestAreas = useMemo(() => {
     if (!searchTerm) {
@@ -60,6 +67,7 @@ export const RestAreaSearchView = ({ allRestAreas, favorites, onToggleFavorite }
                   restArea={restArea}
                   isFavorite={favorites.includes(uniqueId)}
                   onToggleFavorite={() => onToggleFavorite(uniqueId)}
+                  onDetailClick={onDetailClick}
                   index={0} //인기순 정렬 전 사용, 데이터 쌓이면 수정
                 />
               </div>
@@ -83,6 +91,7 @@ export const RestAreaSearchView = ({ allRestAreas, favorites, onToggleFavorite }
                   restArea={restArea}
                   isFavorite={favorites.includes(uniqueId)}
                   onToggleFavorite={() => onToggleFavorite(uniqueId)}
+                  onDetailClick={onDetailClick}
                   index={0}
                 />
               )

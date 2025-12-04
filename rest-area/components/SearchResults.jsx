@@ -5,7 +5,7 @@ import { ClockIcon } from './icons/ClockIcon.jsx';
 import { MapPinIcon } from './icons/MapPinIcon.jsx';
 import { MapView } from './MapView.jsx'; // 파일 경로 확인 필요 (./components/MapView.jsx 일 수도 있음)
 
-export const SearchResults = ({ route, favorites, onToggleFavorite, routePath }) => {
+export const SearchResults = ({ route, favorites, onToggleFavorite, routePath, onDetailClick }) => {
   // [방어 코드] 데이터가 없으면 렌더링하지 않음
   if (!route || !route.restAreas) return null;
 
@@ -72,6 +72,7 @@ export const SearchResults = ({ route, favorites, onToggleFavorite, routePath })
                 // [중요 수정] 정확한 ID로 비교해야 즐겨찾기가 개별적으로 작동함
                 isFavorite={favorites.includes(uniqueId)}
                 onToggleFavorite={() => onToggleFavorite(uniqueId)}
+                onDetailClick={onDetailClick}
               />
             );
           })
