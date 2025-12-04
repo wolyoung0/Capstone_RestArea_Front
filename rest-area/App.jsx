@@ -45,6 +45,9 @@ const App = () => {
 
   //휴게소 상세정보
   const [selectedRestArea, setSelectedRestArea] = useState(null);
+  useEffect(() => {
+    setSelectedRestArea(null);
+  }, [activeTab]);
 
   // (A) 초기 목록 로드 (검색/지도 탭 진입 시)
   useEffect(() => {
@@ -196,8 +199,8 @@ const App = () => {
           </>
         );
 
-      case 'map':
-        return <MapView routePath={routePath} />;
+      // case 'map':
+      //   return <MapView routePath={routePath} />;
 
       case 'search':
         return (
@@ -227,8 +230,11 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-gray-800">
-      <Header favoriteCount={favorites.length} />
-      <main className="container mx-auto max-w-4xl px-4 py-8">
+      {/* ★ [수정] 상세페이지가 '아닐 때만' 헤더를 보여줍니다. ★ */}
+      {!selectedRestArea && <Header favoriteCount={favorites.length} />}
+      
+      {/* 상세페이지일 때는 상단 여백(padding) 제거 */}
+      <main className={`container mx-auto max-w-4xl ${selectedRestArea ? '' : 'px-4 py-8'}`}>
         {renderMainContent()}
       </main>
       <footer className="text-center py-6 text-sm text-gray-400">

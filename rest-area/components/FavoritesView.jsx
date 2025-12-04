@@ -3,7 +3,7 @@ import React from 'react';
 import { RestAreaCard } from './RestAreaCard.jsx';
 import { HeartIcon } from './icons/HeartIcon.jsx';
 
-export const FavoritesView = ({ favoriteRestAreas, favorites, onToggleFavorite }) => {
+export const FavoritesView = ({ favoriteRestAreas, favorites, onToggleFavorite, onDetailClick }) => {
   return (
     <div>
       <div className="flex items-center mb-6">
@@ -21,6 +21,7 @@ export const FavoritesView = ({ favoriteRestAreas, favorites, onToggleFavorite }
               restArea={restArea}
               isFavorite={favorites.includes(uniqueId)}
               onToggleFavorite={() => onToggleFavorite(uniqueId)}
+              onDetailClick={onDetailClick}
               index={0}
             />
             )}
