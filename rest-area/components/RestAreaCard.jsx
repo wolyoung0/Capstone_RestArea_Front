@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { fetchFoodRecommendations } from '../services/apiService.js';
 import { SparklesIcon } from './icons/SparklesIcon.jsx';
 import { HeartIcon } from './icons/HeartIcon.jsx';
@@ -57,6 +57,16 @@ const FOOD_STYLES = [
 
 const INITIAL_AMENITIES_LIMIT = 8;
 
+// [추가] 배열 랜덤 섞기 함수 (컴포넌트 밖, export const RestAreaCard 위쪽 어디든)
+const shuffleArray = (array) => {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+};
+
 export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, onDetailClick, className = '' }) => {
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState('meal');
@@ -69,6 +79,34 @@ export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, on
   const { baseName, directionName } = parseRestAreaName(restArea.name);
   const amenitiesToDisplay = restArea.amenities || restArea.facilities || [];
 
+  const sliderRef = useRef(null);
+  
+  // [추가] 드래그 스크롤을 위한 상태 변수들
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [startScrollLeft, setStartScrollLeft] = useState(0);
+
+  // [추가] 마우스 클릭 시작 (드래그 시작)
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    setStartX(e.pageX - sliderRef.current.offsetLeft);
+    setStartScrollLeft(sliderRef.current.scrollLeft);
+  };
+
+  // [추가] 마우스 떼거나 영역 벗어남 (드래그 중지)
+  const handleStopDragging = () => {
+    setIsDragging(false);
+  };
+  
+  // [추가] 마우스 움직임 (실제 스크롤 이동)
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault(); // 텍스트 선택 방지
+    const x = e.pageX - sliderRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // * 2는 스크롤 속도 (숫자가 클수록 빠름)
+    sliderRef.current.scrollLeft = startScrollLeft - walk;
+  };
+  
   const loadRecommendations = async (style) => {
     setIsFetchingRecs(true);
     setError(null);
@@ -124,10 +162,26 @@ export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, on
     : amenitiesToDisplay.slice(0, INITIAL_AMENITIES_LIMIT);
   const hiddenAmenitiesCount = amenitiesToDisplay.length - visibleAmenities.length;
 
-  const currentBestMenu = recommendations?.bestMenu || recommendations?.best_menu || restArea.bestMenuName;
-  const currentReason = recommendations?.reason || recommendations?.recommendation_reason || restArea.recommendationReason;
+  // ─── [수정] 데이터 가공 (이 부분이 없어서 오류가 났었습니다) ───
   const defaultMenus = (restArea.foodMenus || []).slice(0, 3);
-  const currentTopMenus = recommendations?.menus || recommendations?.top_menus || defaultMenus;
+  
+  // 1. AI 추천용 리스트 (상단 1, 2위 카드용 - 순서 유지)
+  const aiMenus = recommendations?.menus || recommendations?.top_menus || defaultMenus;
+
+  // 2. 전체 메뉴 랜덤 리스트 (하단 슬라이더용 - 랜덤 섞기)
+  const allMenusRandom = useMemo(() => {
+      // AI 데이터가 있으면 그걸 섞고, 없으면 기본 메뉴 데이터를 섞음
+      const source = (recommendations?.menus && recommendations.menus.length > 0) 
+          ? recommendations.menus 
+          : (restArea.foodMenus || []);
+      return shuffleArray(source);
+  }, [recommendations, restArea.foodMenus]);
+
+  // 3. 1위 메뉴 데이터 정리
+  const bestMenuData = aiMenus[0] || {};
+  const bestMenuName = recommendations?.bestMenu || bestMenuData.name || bestMenuData.menu_name || restArea.bestMenuName;
+  const bestMenuPrice = bestMenuData.price || recommendations?.bestMenuPrice || restArea.bestMenuPrice;
+  const currentReason = recommendations?.reason || recommendations?.recommendation_reason || restArea.recommendationReason;
 
   return (
     <div className={`bg-white rounded-2xl shadow-md transition-all duration-300 hover:shadow-xl border border-transparent relative flex flex-col ${className}`}>
@@ -275,6 +329,7 @@ export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, on
         </div>
       )}
 
+      {/* AI 추천 패널 */}
       {showRecommendations && (
         <div className="px-5 pb-5 animate-in fade-in slide-in-from-top-2 duration-300 border-t border-gray-100 pt-4">
              <div className="pt-2">
@@ -296,43 +351,64 @@ export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, on
                 ) : error ? (
                     <div className="p-4 bg-red-50 text-red-700 rounded-xl text-xs font-medium border border-red-100">{error}</div>
                 ) : (
-                    <div className="flex flex-col gap-3">
-                        {/* Best Choice */}
-                        {currentBestMenu ? (
-                            <div className="bg-white border-2 border-blue-100 rounded-2xl p-4 relative overflow-hidden shadow-sm">
-                                <div className="absolute top-0 right-0 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-[10px] px-3 py-1 rounded-bl-xl font-bold z-10 shadow-sm">
-                                    AI Best Choice
-                                </div>
-                                <div className="flex flex-col items-start mt-1">
-                                    <p className="font-extrabold text-lg text-gray-900 mb-1">{currentBestMenu}</p>
-                                    <p className="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded-md inline-block mb-3">
-                                        {Number(currentBestMenu.price || 0) > 0 ? `${Number(currentBestMenu.price).toLocaleString()}원` : '가격 정보 없음'}
-                                    </p>
-                                    <div className="w-full h-px bg-gray-100 mb-3"></div>
-                                    <p className="text-xs text-gray-600 leading-relaxed">
-                                        " {currentReason} "
-                                    </p>
-                                </div>
-                            </div>
-                        ) : (
-                            <p className="text-xs text-gray-400 text-center py-4">추천 정보를 불러올 수 없습니다.</p>
-                        )}
-
-                        {/* Sub Menus */}
-                        {currentTopMenus.length > 0 && (
-                            <div className="grid grid-cols-3 gap-2">
-                                {currentTopMenus.map((menu, i) => (
-                                    <div key={i} className={`p-2 rounded-xl border bg-white text-center flex flex-col justify-center min-h-[70px] ${menu.name === currentBestMenu ? 'border-blue-200 bg-blue-50/30' : 'border-gray-100'}`}>
-                                        <p className={`font-bold text-xs mb-1 truncate px-1 ${menu.name === currentBestMenu ? 'text-blue-700' : 'text-gray-700'}`}>
-                                            {menu.name || menu.menu_name}
-                                        </p>
-                                        {menu.price && (
-                                            <p className="text-[10px] text-gray-400">
-                                                {Number(menu.price).toLocaleString()}
+                    <div className="flex flex-col gap-4">
+                        
+                        {/* 1. 상단 Grid: Top 2 메뉴 (aiMenus 사용 - 순서대로 1,2위) */}
+                        {aiMenus.length > 0 && (
+                            <div className="grid grid-cols-2 gap-3">
+                                {aiMenus.slice(0, 2).map((menu, idx) => (
+                                    <div key={idx} className="bg-white border-2 border-blue-50 rounded-2xl p-4 relative overflow-hidden shadow-sm flex flex-col justify-between min-h-[110px]">
+                                        <div className={`absolute top-0 right-0 text-white text-[9px] px-2 py-1 rounded-bl-lg font-bold z-10 ${idx === 0 ? 'bg-blue-500' : 'bg-gray-400'}`}>
+                                            {idx === 0 ? 'Best' : 'Hot'}
+                                        </div>
+                                        
+                                        <div>
+                                            <p className="font-extrabold text-lg text-gray-900 mb-1 leading-tight line-clamp-2">
+                                                {menu.name || menu.menu_name || restArea.bestMenuName}
                                             </p>
-                                        )}
+                                            <p className="text-[10px] text-gray-500 line-clamp-2">
+                                                {idx === 0 ? `"${currentReason || '강력 추천!'}"` : "많은 분들이 선택한 메뉴"}
+                                            </p>
+                                        </div>
+
+                                        <p className="text-xs text-blue-600 font-bold text-right mt-2">
+                                            {Number(menu.price || (idx === 0 ? restArea.bestMenuPrice : 0)) > 0 
+                                                ? `${Number(menu.price || (idx === 0 ? restArea.bestMenuPrice : 0)).toLocaleString()}원` 
+                                                : '가격 정보 없음'}
+                                        </p>
                                     </div>
                                 ))}
+                            </div>
+                        )}
+
+                        {/* 2. 하단: 전체 메뉴 슬라이더 (랜덤 섞인 리스트 사용) */}
+                        {allMenusRandom.length > 0 && (
+                            <div className="mt-1">
+                                <div className="flex items-center justify-between mb-2 px-1">
+                                    <span className="text-xs font-bold text-gray-500">전체 메뉴 (랜덤)</span>
+                                    <span className="text-[10px] text-gray-400">옆으로 넘겨보세요 👉</span>
+                                </div>
+                                
+                                {/* ★ [수정] 드래그 이벤트 연결 + 커서 스타일 추가 ★ */}
+                                <div 
+                                    ref={sliderRef}
+                                    onMouseDown={handleMouseDown}
+                                    onMouseLeave={handleStopDragging}
+                                    onMouseUp={handleStopDragging}
+                                    onMouseMove={handleMouseMove}
+                                    className="flex overflow-x-auto gap-2 pb-2 -mx-1 px-1 snap-x snap-mandatory no-scrollbar cursor-grab active:cursor-grabbing"
+                                >
+                                    {allMenusRandom.map((menu, i) => ( 
+                                        <div key={i} className="snap-start flex-shrink-0 w-[100px] bg-white border border-gray-100 rounded-xl p-3 flex flex-col justify-between shadow-sm min-h-[80px] select-none"> {/* select-none 추가하면 더 좋음 */}
+                                            <p className="font-medium text-xs text-gray-700 leading-tight line-clamp-2 mb-1">
+                                                {menu.name || menu.menu_name}
+                                            </p>
+                                            <p className="text-[10px] text-gray-400 text-right">
+                                                {menu.price ? `${Number(menu.price).toLocaleString()}` : '-'}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
