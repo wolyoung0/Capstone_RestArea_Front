@@ -129,12 +129,17 @@ export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, on
   };
 
   const handleStyleClick = (styleId) => {
-    if (selectedStyle === styleId) return; 
-    setSelectedStyle(styleId);
-    if (showRecommendations) {
-        loadRecommendations(styleId);
-    }
-  };
+  if (selectedStyle === styleId) return;
+  setSelectedStyle(styleId);
+
+  if (showRecommendations) {
+    // 1. 패널이 열려있으면: 즉시 해당 스타일로 API 호출
+    loadRecommendations(styleId);
+  } else {
+    // 2. 패널이 닫혀있으면: 기존 추천 데이터 삭제 (그래야 나중에 열 때 새로 받아옴)
+    setRecommendations(null); 
+  }
+};
 
   const toggleRecommendations = () => {
     const nextState = !showRecommendations;
@@ -164,23 +169,39 @@ export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, on
 
   // ─── [수정] 데이터 가공 (이 부분이 없어서 오류가 났었습니다) ───
   const defaultMenus = (restArea.foodMenus || []).slice(0, 3);
-  
-  // 1. AI 추천용 리스트 (상단 1, 2위 카드용 - 순서 유지)
-  const aiMenus = recommendations?.menus || recommendations?.top_menus || defaultMenus;
 
-  // 2. 전체 메뉴 랜덤 리스트 (하단 슬라이더용 - 랜덤 섞기)
+  // [수정 포인트 1] aiMenus 결정 로직 변경
+  // 백엔드가 menus 배열 없이 bestMenu만 보낼 경우를 처리해야 함
+  let aiMenus = defaultMenus;
+
+  if (recommendations) {
+    if (recommendations.menus && recommendations.menus.length > 0) {
+      // 1. 백엔드가 리스트로 줄 경우 (기존 로직)
+      aiMenus = recommendations.menus;
+    } else if (recommendations.bestMenu) {
+      // 2. 백엔드가 단일 메뉴(bestMenu)만 줄 경우 -> 첫 번째 카드를 갈아끼움
+      const aiBestMenu = {
+        name: recommendations.bestMenu, // 추천받은 메뉴 이름 (말죽거리소고기국밥)
+        price: recommendations.price || restArea.bestMenuPrice || 0, // 가격 정보가 없으면 기존 베스트 가격 사용
+        reason: recommendations.reason // 추천 사유
+      };
+      // 첫 번째 자리에 추천 메뉴를 넣고, 나머지는 기존 메뉴 유지
+      aiMenus = [aiBestMenu, ...defaultMenus.slice(1)];
+    }
+  }
+
+  // 전체 메뉴 랜덤 리스트 (하단 슬라이더용 - 위에서 만든 aiMenus가 아니라 전체 메뉴 사용)
   const allMenusRandom = useMemo(() => {
-      // AI 데이터가 있으면 그걸 섞고, 없으면 기본 메뉴 데이터를 섞음
-      const source = (recommendations?.menus && recommendations.menus.length > 0) 
-          ? recommendations.menus 
-          : (restArea.foodMenus || []);
-      return shuffleArray(source);
-  }, [recommendations, restArea.foodMenus]);
+    // 추천 결과가 있어도 슬라이더는 다양한 메뉴를 보여주는 게 좋으므로 원본 메뉴 섞기
+    const source = (restArea.foodMenus || []);
+    return shuffleArray(source);
+  }, [restArea.foodMenus]);
 
-  // 3. 1위 메뉴 데이터 정리
+  // 1위 메뉴 데이터 정리 (표시용)
   const bestMenuData = aiMenus[0] || {};
-  const bestMenuName = recommendations?.bestMenu || bestMenuData.name || bestMenuData.menu_name || restArea.bestMenuName;
-  const bestMenuPrice = bestMenuData.price || recommendations?.bestMenuPrice || restArea.bestMenuPrice;
+  
+  // [수정 포인트 2] 화면에 뿌릴 때 사용할 변수들
+  // aiMenus의 첫 번째 요소가 이미 추천 메뉴로 교체되었으므로 그대로 사용하면 됨
   const currentReason = recommendations?.reason || recommendations?.recommendation_reason || restArea.recommendationReason;
 
   return (
@@ -336,7 +357,7 @@ export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, on
                 <div className="flex items-center gap-2 mb-3">
                      <SparklesIcon className="w-5 h-5 text-yellow-500" />
                      <h5 className="font-bold text-sm text-gray-800">
-                        Gemini AI 맞춤 추천 
+                        AI 맞춤 추천 
                         <span className="text-xs text-gray-400 font-normal ml-1">
                             ({FOOD_STYLES.find(s=>s.id === selectedStyle)?.label})
                         </span>
