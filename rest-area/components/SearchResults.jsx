@@ -83,6 +83,7 @@ export const SearchResults = ({ route, favorites, onToggleFavorite, routePath, o
                 isFavorite={favorites.includes(uniqueId)}
                 onToggleFavorite={() => onToggleFavorite(uniqueId)}
                 onDetailClick={onDetailClick}
+                variant="expanded"
               />
             );
           })

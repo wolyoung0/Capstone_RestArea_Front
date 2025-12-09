@@ -66,7 +66,7 @@ const shuffleArray = (array) => {
 };
 
 // variant: 'expanded' (경로탐색용 - 우측패널, 이미지확장) | 'compact' (휴게소검색용 - 하단패널, 이미지고정)
-export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, onDetailClick, className = '', variant = 'expanded' }) => {
+export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, onDetailClick, className = '', variant = 'expanded', props }) => {
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState('meal');
   const [showFilters, setShowFilters] = useState(false);
@@ -293,7 +293,7 @@ export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, on
       <div className="flex flex-col md:flex-row flex-1">
           
           {/* 1. 이미지 영역 (좌측 35%) */}
-          <div className="w-full md:w-[35%] h-56 md:h-auto min-h-[220px] relative overflow-hidden group cursor-pointer" onClick={handleDetailClick}>
+          <div className="w-full md:w-[35%] h-56 md:h-auto min-h-[220px] relative overflow-hidden group cursor-pointer aspect-video" onClick={handleDetailClick}>
             <img 
                 src={mainImage} 
                 alt={baseName} 
