@@ -83,8 +83,6 @@ export const SearchResults = ({ route, favorites, onToggleFavorite, routePath, o
                 isFavorite={favorites.includes(uniqueId)}
                 onToggleFavorite={() => onToggleFavorite(uniqueId)}
                 onDetailClick={onDetailClick}
-                // RestAreaCard 내부 배경도 흰색으로 유지하되, 약간의 투명도를 줄 수도 있음
-                // (RestAreaCard 컴포넌트 내부 스타일은 일단 유지)
               />
             );
           })

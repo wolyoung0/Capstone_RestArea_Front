@@ -6,10 +6,10 @@ import { HeartIcon } from './icons/HeartIcon.jsx';
 export const FavoritesView = ({ favoriteRestAreas, favorites, onToggleFavorite, onDetailClick }) => {
   return (
     <div>
-      <div className="flex items-center mb-6">
+      {/* <div className="flex items-center mb-6">
         <HeartIcon className="w-8 h-8 text-red-500" />
         <h1 className="text-3xl font-bold ml-3 text-gray-800">즐겨찾기</h1>
-      </div>
+      </div> */}
 
       {favoriteRestAreas.length > 0 ? (
         <div className="space-y-4">

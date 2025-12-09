@@ -69,6 +69,7 @@ export const RestAreaSearchView = ({ allRestAreas, favorites, onToggleFavorite, 
                   onToggleFavorite={() => onToggleFavorite(uniqueId)}
                   onDetailClick={onDetailClick}
                   index={0} //인기순 정렬 전 사용, 데이터 쌓이면 수정
+                  variant="compact"
                 />
               </div>
               )}

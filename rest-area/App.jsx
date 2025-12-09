@@ -195,7 +195,6 @@ const App = () => {
         return (
           // 다른 탭들도 흰색 박스 안에서 렌더링되도록 감싸줌 (가독성 확보)
           <div className="w-full max-w-6xl mx-auto bg-white/95 backdrop-blur-xl p-6 md:p-10 rounded-[2rem] shadow-2xl min-h-[70vh]">
-            <h2 className="text-3xl font-bold text-gray-800 mb-6">휴게소 검색</h2>
             <RestAreaSearchView 
               allRestAreas={restAreaSearchResults} 
               favorites={favorites} 
@@ -212,7 +211,7 @@ const App = () => {
         return (
            <div className="w-full max-w-6xl mx-auto bg-white/95 backdrop-blur-xl p-6 md:p-10 rounded-[2rem] shadow-2xl min-h-[70vh]">
             <h2 className="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-               <span>⭐</span> 나의 맛집 즐겨찾기
+               <span>⭐</span> 나의 즐겨찾기
             </h2>
             <FavoritesView 
                 favoriteRestAreas={favoritedRestAreas} 

@@ -79,6 +79,7 @@ export const RestAreaDetailView = ({ restArea, onBack }) => {
             src={heroImage} 
             alt={baseName} 
             className="w-full h-full object-cover"
+            onError={(e) => { e.target.src = fallbackImage; }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
         
@@ -179,7 +180,7 @@ export const RestAreaDetailView = ({ restArea, onBack }) => {
                                 src={menu.imageUrl || `https://source.unsplash.com/random/100x100?food&sig=${idx}`} 
                                 alt={menu.name} 
                                 className="w-full h-full object-cover"
-                                onError={(e) => {e.target.style.display='none'}} // 이미지 깨지면 숨김
+                                onError={(e) => { e.target.src = fallbackImage; }} // 이미지 깨지면 숨김
                             />
                         </div>
                         <div className="flex-1">
