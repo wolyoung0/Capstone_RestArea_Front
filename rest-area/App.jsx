@@ -3,11 +3,10 @@ import { Header } from './components/Header.jsx';
 import { RouteSearch } from './components/RouteSearch.jsx';
 import { SearchResults } from './components/SearchResults.jsx';
 import { CarIcon } from './components/icons/CarIcon.jsx';
-import { MapView } from './components/MapView.jsx';
 import { RestAreaSearchView } from './components/RestAreaSearchView.jsx';
 import { FavoritesView } from './components/FavoritesView.jsx';
 import { RestAreaDetailView } from './components/RestAreaDetailView.jsx';
-import { ALL_REST_AREAS } from './data/restAreas.js'; // 만약 API 실패시 비상용으로 로컬 데이터 하나쯤은 남겨둘 수 있음 (선택사항)
+import { ALL_REST_AREAS } from './data/restAreas.js'; 
 
 import useAppStore from './stores/appStore';
 
@@ -22,34 +21,25 @@ const getFavorites = () => {
 };
 
 const App = () => {
-  // Zustand 전역 상태
   const { activeTab } = useAppStore();
 
-  // [상태 관리]
   const [origin, setOrigin] = useState('서울');
   const [destination, setDestination] = useState('부산');
   
-  // API에서 받아온 경로 데이터
   const [route, setRoute] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  
-  // 즐겨찾기 데이터
   const [favorites, setFavorites] = useState(getFavorites());
-  
-  // 지도 경로 데이터 (선 그리기용)
   const [routePath, setRoutePath] = useState(null);
 
-  // 휴게소 검색 탭용 필터 및 결과
   const [restAreaSearchFilters, setRestAreaSearchFilters] = useState({});
   const [restAreaSearchResults, setRestAreaSearchResults] = useState([]); 
 
-  //휴게소 상세정보
   const [selectedRestArea, setSelectedRestArea] = useState(null);
+  
   useEffect(() => {
     setSelectedRestArea(null);
   }, [activeTab]);
 
-  // (A) 초기 목록 로드 (검색/지도 탭 진입 시)
   useEffect(() => {
     if (activeTab === 'search' || activeTab === 'map' || activeTab === 'favorites') {
       const fetchAllRestAreas = async () => {
@@ -59,8 +49,7 @@ const App = () => {
           const data = await response.json();
           setRestAreaSearchResults(data);
         } catch (error) {
-          console.error("초기 휴게소 로드 에러 (백엔드 연결 확인 필요):", error);
-          // 백엔드 연결 실패 시 빈 배열 혹은 기존 로컬 데이터(ALL_REST_AREAS) 사용 고려
+          console.error("초기 휴게소 로드 에러:", error);
           setRestAreaSearchResults(ALL_REST_AREAS); 
         }
       };
@@ -68,14 +57,12 @@ const App = () => {
     }
   }, [activeTab]);
 
-  // (B) 즐겨찾기 상태 동기화 (localStorage 감지)
   useEffect(() => {
     const updateFavorites = () => setFavorites(getFavorites());
     window.addEventListener('storage', updateFavorites); 
     return () => window.removeEventListener('storage', updateFavorites);
   }, []);
 
-  // [핵심] API 검색 결과 처리 핸들러 (RouteSearch에서 호출됨)
   const handleRestAreas = useCallback((foundRestAreas, summary) => {
     setRoute({ 
         totalDistanceKm: summary.distanceKm,
@@ -85,18 +72,15 @@ const App = () => {
     setIsLoading(false);
   }, []);
 
-  // [검색 시작] 로딩 상태 표시
   const handleSearch = useCallback(() => {
     if (!origin || !destination) {
       alert('출발지와 목적지를 모두 입력해주세요.');
       return;
     }
-    // RouteSearch 컴포넌트가 실제 API 통신을 시작할 때 로딩을 켭니다.
     setIsLoading(true);
-    setRoute(null); // 이전 결과 초기화
+    setRoute(null); 
   }, [origin, destination]);
   
-  // [프리셋 검색]
   const handlePresetSearch = useCallback((newOrigin, newDestination) => {
     setOrigin(newOrigin);
     setDestination(newDestination);
@@ -106,15 +90,12 @@ const App = () => {
 
   const handleOpenDetail = (restArea) => {
     setSelectedRestArea(restArea);
-    // 필요하다면 브라우저 히스토리 관리 등을 추가할 수 있음
   };
 
-  // [상세정보 닫기 핸들러]
   const handleCloseDetail = () => {
     setSelectedRestArea(null);
   };
 
-  // [휴게소 이름 검색] (검색 탭용)
   const handleRestAreaSearch = async () => {
     const keyword = restAreaSearchFilters.keyword || "";
     try {
@@ -131,7 +112,6 @@ const App = () => {
     }
   };
 
-  // [즐겨찾기 토글]
   const toggleFavorite = useCallback((id) => {
     setFavorites(prev => {
       const newFavorites = prev.includes(id) ? prev.filter(favId => favId !== id) : [...prev, id];
@@ -140,106 +120,143 @@ const App = () => {
     });
   }, []);
 
-  // [즐겨찾기 목록 계산]
   const favoritedRestAreas = useMemo(() => {
-    // 검색된 결과가 있으면 거기서 찾고, 없으면 전체 로컬 데이터에서 찾음 (안전장치)
     const sourceData = restAreaSearchResults.length > 0 ? restAreaSearchResults : ALL_REST_AREAS;
     return sourceData.filter(area => favorites.includes(area.restAreaId || area.id)); 
   }, [restAreaSearchResults, favorites]);
 
   // --- 화면 렌더링 로직 ---
   const renderMainContent = () => {
+    // 상세 페이지는 별도의 흰색 배경 뷰이므로 그대로 둠
     if (selectedRestArea) {
       return (
-        <RestAreaDetailView 
-            restArea={selectedRestArea} 
-            onBack={handleCloseDetail} 
-        />
+        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-500">
+           <RestAreaDetailView 
+              restArea={selectedRestArea} 
+              onBack={handleCloseDetail} 
+          />
+        </div>
       );
     }
+
     switch (activeTab) {
       case 'route':
         return (
-          <>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-center text-gray-800 mb-2">
-              AI와 함께 찾는 고속도로 휴게소 맛집
-            </h1>
-            <p className="text-center text-gray-500 mb-8">
-              경로를 검색하고 Gemini AI에게 휴게소별 인기 메뉴를 추천받아보세요!
-            </p>
+          <div className="flex flex-col items-center justify-center w-full min-h-[60vh] gap-12">
+            
+            {/* 1. 타이틀 영역: 어두운 배경 위이므로 '흰색 텍스트' 사용 */}
+            <div className="text-center space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <h1 className="text-4xl md:text-6xl font-extrabold text-white drop-shadow-lg leading-tight">
+                AI와 함께 찾는 <br className="hidden md:block"/>
+                <span className="text-blue-300">고속도로 휴게소 맛집</span>
+              </h1>
+              <p className="text-lg md:text-2xl text-gray-100 drop-shadow-md font-medium">
+                목적지까지 가는 길, AI가 <br className="md:hidden"/> 딱 맞는 메뉴를 추천해드립니다.
+              </p>
+            </div>
 
-            <RouteSearch
-              origin={origin}
-              setOrigin={setOrigin}
-              destination={destination}
-              setDestination={setDestination}
-              onSearch={handleSearch}
-              onPresetSearch={handlePresetSearch}
-              onRouteRestAreas={handleRestAreas} // API 결과 받는 콜백
-              onRoutePathData={setRoutePath}     // 경로 데이터 받는 콜백
-            />
+            {/* 2. 검색창 영역: 흰색 반투명 박스(Glass)를 깔아서 내부 검은 글씨가 잘 보이게 함 */}
+            <div className="w-full max-w-5xl bg-white/95 backdrop-blur-xl p-8 rounded-[2rem] shadow-2xl border border-white/40 ring-1 ring-black/5 animate-in fade-in zoom-in duration-500">
+               <RouteSearch
+                origin={origin}
+                setOrigin={setOrigin}
+                destination={destination}
+                setDestination={setDestination}
+                onSearch={handleSearch}
+                onPresetSearch={handlePresetSearch}
+                onRouteRestAreas={handleRestAreas} 
+                onRoutePathData={setRoutePath}     
+              />
+            </div>
 
             {isLoading && (
-              <div className="flex flex-col items-center justify-center mt-12 text-blue-600">
-                <CarIcon className="w-16 h-16 animate-bounce" /> 
-                <p className="mt-4 text-lg font-semibold">최적의 경로와 맛집을 찾고 있습니다...</p>
+              <div className="flex flex-col items-center justify-center mt-8 text-white">
+                <CarIcon className="w-20 h-20 animate-bounce text-blue-300 drop-shadow-lg" /> 
+                <p className="mt-4 text-xl font-bold drop-shadow-md">최적의 경로와 맛집을 찾는 중...</p>
               </div>
             )}
             
-            {/* 결과 표시 */}
             {route && !isLoading && (
-                <SearchResults 
-                    route={route} 
-                    favorites={favorites} 
-                    onToggleFavorite={toggleFavorite} 
-                    routePath={routePath} 
-                    onDetailClick={handleOpenDetail}
-                />
+                <div className="w-full mt-4 animate-in fade-in slide-in-from-bottom-8 duration-500">
+                  {/* 결과 목록도 보통 자체적으로 흰색 카드를 가지고 있으므로 그대로 둠 */}
+                  <SearchResults 
+                      route={route} 
+                      favorites={favorites} 
+                      onToggleFavorite={toggleFavorite} 
+                      routePath={routePath} 
+                      onDetailClick={handleOpenDetail}
+                  />
+                </div>
             )}
-          </>
+          </div>
         );
-
-      // case 'map':
-      //   return <MapView routePath={routePath} />;
 
       case 'search':
         return (
-          <RestAreaSearchView 
-            allRestAreas={restAreaSearchResults} 
-            favorites={favorites} 
-            onToggleFavorite={toggleFavorite} 
-            filters={restAreaSearchFilters}
-            onFiltersChange={setRestAreaSearchFilters}
-            onSearch={handleRestAreaSearch}
-            onDetailClick={handleOpenDetail}
-          />
+          // 다른 탭들도 흰색 박스 안에서 렌더링되도록 감싸줌 (가독성 확보)
+          <div className="w-full max-w-6xl mx-auto bg-white/95 backdrop-blur-xl p-6 md:p-10 rounded-[2rem] shadow-2xl min-h-[70vh]">
+            <h2 className="text-3xl font-bold text-gray-800 mb-6">휴게소 검색</h2>
+            <RestAreaSearchView 
+              allRestAreas={restAreaSearchResults} 
+              favorites={favorites} 
+              onToggleFavorite={toggleFavorite} 
+              filters={restAreaSearchFilters}
+              onFiltersChange={setRestAreaSearchFilters}
+              onSearch={handleRestAreaSearch}
+              onDetailClick={handleOpenDetail}
+            />
+          </div>
         );
 
       case 'favorites':
-        return <FavoritesView favoriteRestAreas={favoritedRestAreas} favorites={favorites} onToggleFavorite={toggleFavorite} onDetailClick={handleOpenDetail} />;
+        return (
+           <div className="w-full max-w-6xl mx-auto bg-white/95 backdrop-blur-xl p-6 md:p-10 rounded-[2rem] shadow-2xl min-h-[70vh]">
+            <h2 className="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+               <span>⭐</span> 나의 맛집 즐겨찾기
+            </h2>
+            <FavoritesView 
+                favoriteRestAreas={favoritedRestAreas} 
+                favorites={favorites} 
+                onToggleFavorite={toggleFavorite} 
+                onDetailClick={handleOpenDetail} 
+            />
+          </div>
+        );
       
-      case 'restarea-detail':
-      case 'menu-detail':
-      case 'login':
-        return <div>준비 중인 페이지입니다.</div>;
-        
       default:
-        return <div>페이지를 찾을 수 없습니다.</div>;
+        return <div className="text-white text-center text-xl mt-20">준비 중인 페이지입니다.</div>;
     }
   };
 
+  const bgImage = "https://images.unsplash.com/photo-1519817914152-22d216bb9170?auto=format&fit=crop&q=80&w=2832";
+
   return (
-    <div className="min-h-screen bg-slate-50 text-gray-800">
-      {/* ★ [수정] 상세페이지가 '아닐 때만' 헤더를 보여줍니다. ★ */}
-      {!selectedRestArea && <Header favoriteCount={favorites.length} />}
-      
-      {/* 상세페이지일 때는 상단 여백(padding) 제거 */}
-      <main className={`container mx-auto max-w-4xl ${selectedRestArea ? '' : 'px-4 py-8'}`}>
-        {renderMainContent()}
-      </main>
-      <footer className="text-center py-6 text-sm text-gray-400">
-        © 2025 AI 휴게소 맛집 찾기. All Rights Reserved.
-      </footer>
+    <div className="relative min-h-screen w-full overflow-x-hidden font-sans">
+        
+        {/* 1. 배경 이미지 (어두운 오버레이 포함) */}
+        <div className="fixed inset-0 z-0">
+             <div 
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat transform hover:scale-105 transition-transform duration-[60s]"
+                style={{ backgroundImage: `url(${bgImage})` }}
+            />
+            {/* 오버레이: 검은색 60% 투명도 (배경은 어둡게 눌러주고, 위쪽 흰색 컨텐츠는 돋보이게) */}
+            <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-[2px]" />
+        </div>
+
+        {/* 2. 실제 컨텐츠 영역 (z-10) */}
+        <div className="relative z-10 flex flex-col min-h-screen">
+            
+            {/* 헤더 */}
+            {!selectedRestArea && <Header favoriteCount={favorites.length} />}
+            
+            <main className={`flex-1 w-full mx-auto ${selectedRestArea ? 'max-w-4xl py-8' : 'max-w-7xl px-4 py-12 flex flex-col justify-center'}`}>
+                {renderMainContent()}
+            </main>
+            
+            <footer className="text-center py-8 text-sm text-white/60">
+                © 2025 AI 휴게소 맛집 찾기. All Rights Reserved.
+            </footer>
+        </div>
     </div>
   );
 };

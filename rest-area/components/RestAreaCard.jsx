@@ -3,19 +3,36 @@ import { fetchFoodRecommendations } from '../services/apiService.js';
 import { SparklesIcon } from './icons/SparklesIcon.jsx';
 import { HeartIcon } from './icons/HeartIcon.jsx';
 import { MapPinIcon } from './icons/MapPinIcon.jsx';
-import { SlidersHorizontal, ChevronRight } from 'lucide-react';
+import { 
+  SlidersHorizontal, ChevronRight, 
+  Fuel, Zap, Utensils, Coffee, Store, Pill, 
+  Baby, Bed, Bus, Stethoscope, 
+  Wrench, Shirt, ShoppingBag, Banknote, Truck, 
+  Car, Info 
+} from 'lucide-react';
 
-// --- 유틸리티 및 상수 ---
-const Amenity = {
-  GasStation: 'GasStation',
-  LPGStation: 'LPGStation',
-  EVStation: 'EVStation',
-  ConvenienceStore: 'ConvenienceStore',
-  Restaurant: 'Restaurant',
-  Cafe: 'Cafe',
-  Pharmacy: 'Pharmacy',
-  SleepingRoom: 'SleepingRoom',
-  ShowerRoom: 'ShowerRoom',
+// --- 편의시설 아이콘 설정 (유지) ---
+const getAmenityConfig = (name) => {
+  const n = name || '';
+  if (n.includes('주유소') || n.includes('GasStation')) return { style: 'bg-orange-100 text-orange-800 border-orange-200', icon: <Fuel className="w-3.5 h-3.5"/> };
+  if (n.includes('LPG') || n.includes('충전소')) return { style: 'bg-rose-100 text-rose-800 border-rose-200', icon: <Fuel className="w-3.5 h-3.5"/> };
+  if (n.includes('전기차') || n.includes('EV')) return { style: 'bg-emerald-100 text-emerald-800 border-emerald-200', icon: <Zap className="w-3.5 h-3.5"/> };
+  if (n.includes('식당') || n.includes('Restaurant')) return { style: 'bg-amber-100 text-amber-800 border-amber-200', icon: <Utensils className="w-3.5 h-3.5"/> };
+  if (n.includes('카페') || n.includes('커피')) return { style: 'bg-amber-50 text-amber-900 border-amber-200', icon: <Coffee className="w-3.5 h-3.5"/> };
+  if (n.includes('편의점') || n.includes('매점')) return { style: 'bg-blue-100 text-blue-800 border-blue-200', icon: <Store className="w-3.5 h-3.5"/> };
+  if (n.includes('열린매장') || n.includes('간식')) return { style: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: <ShoppingBag className="w-3.5 h-3.5"/> };
+  if (n.includes('약국') || n.includes('Pharmacy')) return { style: 'bg-teal-100 text-teal-800 border-teal-200', icon: <Pill className="w-3.5 h-3.5"/> };
+  if (n.includes('휴게소의원') || n.includes('병원')) return { style: 'bg-red-50 text-red-700 border-red-200', icon: <Stethoscope className="w-3.5 h-3.5"/> };
+  if (n.includes('수유실') || n.includes('기저귀')) return { style: 'bg-pink-100 text-pink-700 border-pink-200', icon: <Baby className="w-3.5 h-3.5"/> };
+  if (n.includes('세탁실') || n.includes('샤워실')) return { style: 'bg-cyan-100 text-cyan-800 border-cyan-200', icon: <Shirt className="w-3.5 h-3.5"/> };
+  if (n.includes('수면실') || n.includes('쉼터')) return { style: 'bg-indigo-100 text-indigo-800 border-indigo-200', icon: <Bed className="w-3.5 h-3.5"/> };
+  if (n.includes('버스환승')) return { style: 'bg-violet-100 text-violet-800 border-violet-200', icon: <Bus className="w-3.5 h-3.5"/> };
+  if (n.includes('경정비') || n.includes('정비소')) return { style: 'bg-slate-200 text-slate-700 border-slate-300', icon: <Wrench className="w-3.5 h-3.5"/> };
+  if (n.includes('세차장')) return { style: 'bg-sky-100 text-sky-800 border-sky-200', icon: <Car className="w-3.5 h-3.5"/> };
+  if (n.includes('화물차라운지')) return { style: 'bg-slate-100 text-slate-800 border-slate-300', icon: <Truck className="w-3.5 h-3.5"/> };
+  if (n.includes('내고장특산물')) return { style: 'bg-lime-100 text-lime-800 border-lime-200', icon: <ShoppingBag className="w-3.5 h-3.5"/> };
+  if (n.includes('ATM') || n.includes('은행')) return { style: 'bg-green-100 text-green-800 border-green-200', icon: <Banknote className="w-3.5 h-3.5"/> };
+  return { style: 'bg-gray-100 text-gray-600 border-gray-200', icon: <Info className="w-3.5 h-3.5"/> };
 };
 
 const parseRestAreaName = (fullName) => {
@@ -24,26 +41,12 @@ const parseRestAreaName = (fullName) => {
   if (match && match.length >= 3) {
     const baseName = match[1].replace(/휴게소|주유소/g, '').trim() + '휴게소';
     let direction = match[2].trim();
-    if (!direction.endsWith('방향')) {
-      direction += '방향';
-    }
+    if (!direction.endsWith('방향')) { direction += '방향'; }
     return { baseName, directionName: `(${direction})` };
   }
   const trimmedName = fullName.trim();
   const finalName = trimmedName.endsWith('휴게소') ? trimmedName : `${trimmedName}휴게소`;
   return { baseName: finalName, directionName: '' };
-};
-
-const amenityColors = {
-  [Amenity.GasStation]: 'bg-orange-100 text-orange-800 border-orange-200',
-  [Amenity.LPGStation]: 'bg-red-100 text-red-800 border-red-200',
-  [Amenity.EVStation]: 'bg-green-100 text-green-800 border-green-200',
-  [Amenity.ConvenienceStore]: 'bg-sky-100 text-sky-800 border-sky-200',
-  [Amenity.Restaurant]: 'bg-amber-100 text-amber-800 border-amber-200',
-  [Amenity.Cafe]: 'bg-purple-100 text-purple-800 border-purple-200',
-  [Amenity.Pharmacy]: 'bg-teal-100 text-teal-800 border-teal-200',
-  [Amenity.SleepingRoom]: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-  [Amenity.ShowerRoom]: 'bg-cyan-100 text-cyan-800 border-cyan-500',
 };
 
 const FOOD_STYLES = [
@@ -57,7 +60,6 @@ const FOOD_STYLES = [
 
 const INITIAL_AMENITIES_LIMIT = 8;
 
-// [추가] 배열 랜덤 섞기 함수 (컴포넌트 밖, export const RestAreaCard 위쪽 어디든)
 const shuffleArray = (array) => {
     const newArray = [...array];
     for (let i = newArray.length - 1; i > 0; i--) {
@@ -80,30 +82,21 @@ export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, on
   const amenitiesToDisplay = restArea.amenities || restArea.facilities || [];
 
   const sliderRef = useRef(null);
-  
-  // [추가] 드래그 스크롤을 위한 상태 변수들
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [startScrollLeft, setStartScrollLeft] = useState(0);
 
-  // [추가] 마우스 클릭 시작 (드래그 시작)
   const handleMouseDown = (e) => {
     setIsDragging(true);
     setStartX(e.pageX - sliderRef.current.offsetLeft);
     setStartScrollLeft(sliderRef.current.scrollLeft);
   };
-
-  // [추가] 마우스 떼거나 영역 벗어남 (드래그 중지)
-  const handleStopDragging = () => {
-    setIsDragging(false);
-  };
-  
-  // [추가] 마우스 움직임 (실제 스크롤 이동)
+  const handleStopDragging = () => setIsDragging(false);
   const handleMouseMove = (e) => {
     if (!isDragging) return;
-    e.preventDefault(); // 텍스트 선택 방지
+    e.preventDefault();
     const x = e.pageX - sliderRef.current.offsetLeft;
-    const walk = (x - startX) * 2; // * 2는 스크롤 속도 (숫자가 클수록 빠름)
+    const walk = (x - startX) * 2;
     sliderRef.current.scrollLeft = startScrollLeft - walk;
   };
   
@@ -122,36 +115,24 @@ export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, on
   };
 
   const handleDetailClick = (e) => {
-    e.stopPropagation(); // 카드 클릭 이벤트와 겹치지 않게 방지
-    if (onDetailClick) {
-        onDetailClick(restArea); // ★ 부모에게 "나 눌렸어!" 하고 데이터 전달
-    }
+    e.stopPropagation();
+    if (onDetailClick) onDetailClick(restArea);
   };
 
   const handleStyleClick = (styleId) => {
-  if (selectedStyle === styleId) return;
-  setSelectedStyle(styleId);
-
-  if (showRecommendations) {
-    // 1. 패널이 열려있으면: 즉시 해당 스타일로 API 호출
-    loadRecommendations(styleId);
-  } else {
-    // 2. 패널이 닫혀있으면: 기존 추천 데이터 삭제 (그래야 나중에 열 때 새로 받아옴)
-    setRecommendations(null); 
-  }
-};
+    if (selectedStyle === styleId) return;
+    setSelectedStyle(styleId);
+    if (showRecommendations) loadRecommendations(styleId);
+    else setRecommendations(null); 
+  };
 
   const toggleRecommendations = () => {
     const nextState = !showRecommendations;
     setShowRecommendations(nextState);
-    if (nextState && !recommendations) {
-        loadRecommendations(selectedStyle);
-    }
+    if (nextState && !recommendations) loadRecommendations(selectedStyle);
   };
 
-  const toggleFilters = () => {
-    setShowFilters(!showFilters);
-  };
+  const toggleFilters = () => setShowFilters(!showFilters);
 
   const handleFavoriteClick = (e) => {
     e.stopPropagation();
@@ -167,179 +148,143 @@ export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, on
     : amenitiesToDisplay.slice(0, INITIAL_AMENITIES_LIMIT);
   const hiddenAmenitiesCount = amenitiesToDisplay.length - visibleAmenities.length;
 
-  // ─── [수정] 데이터 가공 (이 부분이 없어서 오류가 났었습니다) ───
   const defaultMenus = (restArea.foodMenus || []).slice(0, 3);
-
-  // [수정 포인트 1] aiMenus 결정 로직 변경
-  // 백엔드가 menus 배열 없이 bestMenu만 보낼 경우를 처리해야 함
   let aiMenus = defaultMenus;
-
+  
   if (recommendations) {
     if (recommendations.menus && recommendations.menus.length > 0) {
-      // 1. 백엔드가 리스트로 줄 경우 (기존 로직)
       aiMenus = recommendations.menus;
     } else if (recommendations.bestMenu) {
-      // 2. 백엔드가 단일 메뉴(bestMenu)만 줄 경우 -> 첫 번째 카드를 갈아끼움
       const aiBestMenu = {
-        name: recommendations.bestMenu, // 추천받은 메뉴 이름 (말죽거리소고기국밥)
-        price: recommendations.price || restArea.bestMenuPrice || 0, // 가격 정보가 없으면 기존 베스트 가격 사용
-        reason: recommendations.reason // 추천 사유
+        name: recommendations.bestMenu,
+        price: recommendations.price || restArea.bestMenuPrice || 0,
+        reason: recommendations.reason
       };
-      // 첫 번째 자리에 추천 메뉴를 넣고, 나머지는 기존 메뉴 유지
       aiMenus = [aiBestMenu, ...defaultMenus.slice(1)];
     }
   }
 
-  // 전체 메뉴 랜덤 리스트 (하단 슬라이더용 - 위에서 만든 aiMenus가 아니라 전체 메뉴 사용)
   const allMenusRandom = useMemo(() => {
-    // 추천 결과가 있어도 슬라이더는 다양한 메뉴를 보여주는 게 좋으므로 원본 메뉴 섞기
     const source = (restArea.foodMenus || []);
     return shuffleArray(source);
   }, [restArea.foodMenus]);
 
-  // 1위 메뉴 데이터 정리 (표시용)
-  const bestMenuData = aiMenus[0] || {};
-  
-  // [수정 포인트 2] 화면에 뿌릴 때 사용할 변수들
-  // aiMenus의 첫 번째 요소가 이미 추천 메뉴로 교체되었으므로 그대로 사용하면 됨
   const currentReason = recommendations?.reason || recommendations?.recommendation_reason || restArea.recommendationReason;
 
-  return (
-    <div className={`bg-white rounded-2xl shadow-md transition-all duration-300 hover:shadow-xl border border-transparent relative flex flex-col ${className}`}>
-      
-      {/* =====================================================================================
-          메인 컨텐츠 영역 (순수 Stack 구조: 위 -> 아래)
-      ===================================================================================== */}
-      <div className="p-5 flex flex-col">
-        
-        {/* [1층] 헤더: 아이콘 + 제목 + 하트 (양 끝 정렬) */}
-        <div className="flex justify-between items-start">
-            <div className="flex gap-3">
-                {/* 순번 아이콘 */}
-                <div className="flex-shrink-0 flex items-center justify-center bg-blue-100 text-blue-600 w-10 h-10 rounded-full font-bold text-lg mt-0.5">
-                    {index > 0 ? index : <MapPinIcon className="w-5 h-5" />}
-                </div>
+  const fallbackImage = "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=800";
+  const mainImage = restArea.imageUrl || fallbackImage;
 
-                {/* 텍스트 그룹 (제목 + 노선명) */}
-                <div className="flex flex-col">
-                    {/* 제목 */}
-                    <div className="flex flex-col md:flex-row md:items-baseline md:gap-1.5">
-                        <h4 className="text-lg md:text-xl font-bold text-gray-900 leading-tight break-keep">
-                            {baseName}
-                        </h4>
-                        {directionName && (
-                            <span className="text-sm md:text-base text-gray-600 font-normal leading-tight break-keep">
-                                {directionName}
-                            </span>
-                        )}
-                    </div>
-                    
-                    {/* ★ [2층] 노선명 및 거리 정보 (제목 바로 아래에 바짝 붙임) ★ */}
-                    <div className="mt-1 text-sm text-gray-500 font-medium flex flex-wrap items-center gap-2">
-                        <span className="text-gray-600 font-semibold">{restArea.routeName}</span>
-                        {index > 0 && (
-                            <>
-                                <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                                <span>{restArea.distanceKm || (restArea.distance ? (restArea.distance/1000).toFixed(1) : 0)}km</span>
-                                <span className="text-gray-400 hidden sm:inline">| 약 {timeHours > 0 && `${timeHours}시간 `}{timeMins}분 후</span>
-                            </>
-                        )}
+  return (
+    <div className={`bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col md:flex-row ${className}`}>
+      
+      {/* 좌측: 이미지 */}
+      <div className="w-full md:w-[35%] h-56 md:h-auto min-h-[250px] relative overflow-hidden group cursor-pointer" onClick={handleDetailClick}>
+        <img 
+            src={mainImage} 
+            alt={baseName} 
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            onError={(e) => { e.target.src = fallbackImage; }} 
+        />
+        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full shadow-lg flex items-center gap-1.5 z-10">
+            <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-extrabold">
+                {index > 0 ? index : <MapPinIcon className="w-3 h-3"/>}
+            </div>
+            <span className="text-xs font-bold text-gray-800">추천 휴게소</span>
+        </div>
+        <button 
+            onClick={handleFavoriteClick}
+            className="absolute top-4 right-4 p-2.5 bg-white/60 backdrop-blur-sm rounded-full hover:bg-white text-white hover:text-red-500 transition-all shadow-md active:scale-95 z-10"
+        >
+            <HeartIcon className={`w-6 h-6 ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-800'}`} />
+        </button>
+      </div>
+
+      {/* 우측: 정보 및 추천 결과 컨테이너 */}
+      {/* ★ flex flex-col로 설정하여 내부 요소들이 수직으로 쌓이게 함 */}
+      <div className="w-full md:w-[65%] p-6 flex flex-col">
+        
+        {/* 상단 정보 영역 */}
+        <div className="mb-4">
+            <div className="flex justify-between items-start mb-2">
+                <div className="flex-1">
+                    <h3 className="text-2xl font-extrabold text-gray-900 leading-tight mb-2 flex items-center gap-2 cursor-pointer hover:text-blue-600 transition-colors" onClick={handleDetailClick}>
+                        {baseName}
+                        <ChevronRight className="w-6 h-6 text-gray-300" />
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
+                        {directionName && <span className="text-gray-500">{directionName}</span>}
+                        <span className="px-2 py-0.5 bg-gray-100 rounded text-gray-600">{restArea.routeName}</span>
+                        <span className="text-blue-600 font-bold">{restArea.distanceKm ? `${restArea.distanceKm}km` : '0km'}</span>
+                        <span className="text-gray-400">({timeHours > 0 && `${timeHours}시간 `}{timeMins}분 소요)</span>
                     </div>
                 </div>
             </div>
 
-            {/* 하트 버튼 (우측 상단 고정) */}
-            <button 
-                onClick={handleFavoriteClick}
-                className="p-2 -mt-2 -mr-2 rounded-full hover:bg-red-50 transition-colors active:scale-95"
-            >
-                <HeartIcon className={`w-6 h-6 ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-300'}`} />
-            </button>
-        </div>
-
-        {/* ★ [3층] 버튼 영역 (중간에 배치 / 우측 정렬) ★ */}
-        {/* 노선명과는 줄바꿈이 되며, 편의시설보다는 위에 위치함 */}
-        <div className="flex justify-end items-center gap-2 mt-4 mb-2">
-         {/* 필터 버튼 */}
-          <button
-            onClick={toggleFilters}
-            className={`p-2 rounded-lg border transition-all text-gray-400 border-gray-200 bg-white hover:text-blue-600 hover:border-blue-200 active:scale-95
-              ${showFilters ? 'bg-blue-50 text-blue-600 border-blue-200 ring-1 ring-blue-100' : ''}`}
-              title="필터"
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-          </button>
-
-          {/* AI 추천 버튼 */}
-          <button
-            onClick={toggleRecommendations}
-            className={`flex items-center justify-center gap-1 py-2 px-3 rounded-lg shadow-sm font-bold text-xs md:text-sm transition-all active:scale-95 whitespace-nowrap
-              ${showRecommendations 
-                  ? 'bg-gray-200 text-gray-600 shadow-inner' 
-                  : 'bg-gradient-to-r from-teal-400 to-cyan-500 text-white hover:shadow-md hover:-translate-y-0.5'}`}
-            >
-                <SparklesIcon className={`w-3.5 h-3.5 ${showRecommendations ? 'text-gray-500' : 'text-white'}`} />
-                <span>{showRecommendations ? '닫기' : 'AI 메뉴 추천'}</span>
-            </button>
-        </div>
-
-
-        {/* ★ [4층] 편의시설 영역 (맨 아래) ★ */}
-        <div className="pt-2 border-t border-dashed border-gray-100 flex justify-between items-end gap-2">
-            <div className="flex flex-wrap items-center gap-1.5">
-                {visibleAmenities.length > 0 ? (
-                    visibleAmenities.map((amenity, idx) => (
-                    <div key={`${amenity}-${idx}`} className={`px-1.5 py-0.5 rounded-md text-[10px] md:text-[11px] font-bold border ${amenityColors[amenity] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
-                        {amenity}
-                    </div>
-                    ))
-                ) : (
-                    <span className="text-xs text-gray-400 py-1">편의시설 정보 없음</span>
-                )}
-                
+            <div className="flex flex-wrap gap-2">
+                {visibleAmenities.map((amenity, idx) => {
+                    const { style, icon } = getAmenityConfig(amenity); 
+                    return (
+                        <div key={idx} className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border flex items-center gap-1.5 select-none ${style}`}>
+                            {icon} {amenity}
+                        </div>
+                    );
+                })}
                 {hiddenAmenitiesCount > 0 && !amenitiesExpanded && (
-                    <button
-                    onClick={(e) => { e.stopPropagation(); setAmenitiesExpanded(true); }}
-                    className="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded-md text-[10px] font-bold border border-gray-200 hover:bg-gray-200"
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); setAmenitiesExpanded(true); }}
+                        className="px-2 py-1 text-xs font-bold text-gray-400 bg-gray-50 rounded-lg hover:bg-gray-100"
                     >
-                    +{hiddenAmenitiesCount}
+                        +{hiddenAmenitiesCount}
                     </button>
                 )}
             </div>
-            <button 
-                onClick={handleDetailClick}
-                className="flex-shrink-0 flex items-center gap-0.5 text-xs font-bold text-gray-400 hover:text-blue-600 transition-colors group whitespace-nowrap mb-0.5 ml-2"
+        </div>
+
+        {/* 버튼 영역 (mt-auto로 가능한 하단으로 밀어냄) */}
+        <div className="flex items-center justify-between mt-auto pt-4">
+            <div className="flex items-center gap-2">
+                <button 
+                    onClick={toggleFilters} 
+                    className={`p-2.5 rounded-xl border transition-all flex items-center gap-2 text-sm font-bold
+                        ${showFilters 
+                            ? 'bg-blue-50 border-blue-200 text-blue-600' 
+                            : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600'}
+                    `}
+                >
+                    <SlidersHorizontal className="w-4 h-4"/>
+                    <span className="hidden sm:inline">취향 필터</span>
+                </button>
+            </div>
+            
+            <button
+                onClick={toggleRecommendations}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-md active:scale-95
+                    ${showRecommendations 
+                        ? 'bg-gray-100 text-gray-600 shadow-inner' 
+                        : 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white hover:shadow-lg hover:-translate-y-0.5'}
+                `}
             >
-                상세정보
-                <ChevronRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
+                <SparklesIcon className={`w-4 h-4 ${showRecommendations ? 'text-gray-500' : 'text-yellow-200'}`} />
+                <span>{showRecommendations ? '추천 닫기' : 'AI 메뉴 추천'}</span>
             </button>
         </div>
 
-      </div>
+        {/* ============================================================ */}
+        {/* ★ 여기로 이동! 우측 컬럼 내부 하단에 필터/추천 패널 배치 ★ */}
+        {/* ============================================================ */}
 
-      {/* =====================================================================================
-          하단 확장 패널 (필터창 & 추천 결과창) - 기존 유지
-      ===================================================================================== */}
-      {showFilters && (
-        <div className="px-5 pb-5 animate-in fade-in slide-in-from-top-2 duration-200 border-t border-gray-100 pt-4">
-             <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                <div className="flex justify-between items-center mb-2.5">
-                    <p className="text-xs font-bold text-gray-500 ml-1 flex items-center gap-1">
-                        <span className="w-1 h-3 bg-gray-400 rounded-full"></span>
-                        원하는 스타일을 선택하세요:
-                    </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
+        {/* (A) 필터 패널 */}
+        {showFilters && (
+            <div className="animate-in fade-in slide-in-from-top-1 duration-200 mt-4 p-4 bg-gray-50/80 rounded-2xl border border-gray-100">
+                 <div className="flex flex-wrap gap-2">
                     {FOOD_STYLES.map((style) => (
                         <button
                             key={style.id}
                             onClick={() => handleStyleClick(style.id)}
-                            disabled={isFetchingRecs}
-                            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm border
+                            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border shadow-sm
                                 ${selectedStyle === style.id 
-                                    ? 'bg-blue-600 text-white border-blue-600 ring-2 ring-blue-100' 
-                                    : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50 hover:border-gray-300'}
-                                ${isFetchingRecs ? 'opacity-60 cursor-not-allowed' : ''}
+                                    ? 'bg-blue-600 text-white border-blue-600' 
+                                    : 'bg-white text-gray-500 border-gray-200 hover:bg-blue-50'}
                             `}
                         >
                             {style.label}
@@ -347,70 +292,60 @@ export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, on
                     ))}
                 </div>
             </div>
-        </div>
-      )}
+        )}
 
-      {/* AI 추천 패널 */}
-      {showRecommendations && (
-        <div className="px-5 pb-5 animate-in fade-in slide-in-from-top-2 duration-300 border-t border-gray-100 pt-4">
-             <div className="pt-2">
-                <div className="flex items-center gap-2 mb-3">
-                     <SparklesIcon className="w-5 h-5 text-yellow-500" />
+        {/* (B) AI 추천 결과 패널 */}
+        {showRecommendations && (
+            <div className="animate-in fade-in slide-in-from-top-1 duration-300 mt-4 p-4 bg-blue-50/30 rounded-2xl border border-blue-100">
+                
+                <div className="flex items-center gap-2 mb-4">
+                     <SparklesIcon className="w-5 h-5 text-yellow-500 animate-pulse" />
                      <h5 className="font-bold text-sm text-gray-800">
-                        AI 맞춤 추천 
-                        <span className="text-xs text-gray-400 font-normal ml-1">
-                            ({FOOD_STYLES.find(s=>s.id === selectedStyle)?.label})
-                        </span>
+                        AI 추천: <span className="text-blue-600">{FOOD_STYLES.find(s=>s.id === selectedStyle)?.label}</span>
                      </h5>
                 </div>
 
                 {isFetchingRecs ? (
-                    <div className="py-8 flex flex-col justify-center items-center text-blue-500 gap-3 bg-blue-50/50 rounded-xl border border-blue-100">
+                    <div className="py-8 flex flex-col justify-center items-center text-blue-500 gap-3">
                         <SparklesIcon className="w-6 h-6 animate-spin" />
-                        <span className="text-xs font-bold animate-pulse">AI가 맛있는 메뉴를 찾고 있어요...</span>
+                        <span className="text-xs font-bold animate-pulse">최고의 메뉴를 찾는 중...</span>
                     </div>
                 ) : error ? (
-                    <div className="p-4 bg-red-50 text-red-700 rounded-xl text-xs font-medium border border-red-100">{error}</div>
+                    <div className="p-4 bg-red-50 text-red-700 rounded-xl text-sm font-medium border border-red-100">{error}</div>
                 ) : (
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-6">
                         
-                        {/* 1. 상단 Grid: Top 2 메뉴 (aiMenus 사용 - 순서대로 1,2위) */}
+                        {/* [1] Top 2 메뉴 그리드 (★ grid-cols-2로 강제하여 항상 가로 배치 ★) */}
                         {aiMenus.length > 0 && (
                             <div className="grid grid-cols-2 gap-3">
                                 {aiMenus.slice(0, 2).map((menu, idx) => (
-                                    <div key={idx} className="bg-white border-2 border-blue-50 rounded-2xl p-4 relative overflow-hidden shadow-sm flex flex-col justify-between min-h-[110px]">
-                                        <div className={`absolute top-0 right-0 text-white text-[9px] px-2 py-1 rounded-bl-lg font-bold z-10 ${idx === 0 ? 'bg-blue-500' : 'bg-gray-400'}`}>
-                                            {idx === 0 ? 'Best' : 'Hot'}
+                                    <div key={idx} className="bg-white border-2 border-blue-50 rounded-2xl p-3 relative overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between min-h-[100px]">
+                                        <div className={`absolute top-0 right-0 text-white text-[9px] px-2 py-0.5 rounded-bl-xl font-bold z-10 ${idx === 0 ? 'bg-blue-600' : 'bg-gray-400'}`}>
+                                            {idx === 0 ? 'BEST' : 'HOT'}
                                         </div>
-                                        
                                         <div>
-                                            <p className="font-extrabold text-lg text-gray-900 mb-1 leading-tight line-clamp-2">
+                                            <p className="font-extrabold text-sm text-gray-900 mb-1 leading-tight line-clamp-2">
                                                 {menu.name || menu.menu_name || restArea.bestMenuName}
                                             </p>
-                                            <p className="text-[10px] text-gray-500 line-clamp-2">
-                                                {idx === 0 ? `"${currentReason || '강력 추천!'}"` : "많은 분들이 선택한 메뉴"}
+                                            <p className="text-[10px] text-gray-500 bg-gray-50 inline-block px-1.5 py-0.5 rounded line-clamp-1">
+                                                {idx === 0 ? (currentReason || '강력 추천!') : "인기 메뉴"}
                                             </p>
                                         </div>
-
-                                        <p className="text-xs text-blue-600 font-bold text-right mt-2">
-                                            {Number(menu.price || (idx === 0 ? restArea.bestMenuPrice : 0)) > 0 
-                                                ? `${Number(menu.price || (idx === 0 ? restArea.bestMenuPrice : 0)).toLocaleString()}원` 
-                                                : '가격 정보 없음'}
+                                        <p className="text-sm text-blue-600 font-extrabold text-right mt-2">
+                                            {Number(menu.price || (idx === 0 ? restArea.bestMenuPrice : 0)).toLocaleString()}원
                                         </p>
                                     </div>
                                 ))}
                             </div>
                         )}
 
-                        {/* 2. 하단: 전체 메뉴 슬라이더 (랜덤 섞인 리스트 사용) */}
+                        {/* [2] 전체 메뉴 랜덤 슬라이더 */}
                         {allMenusRandom.length > 0 && (
                             <div className="mt-1">
                                 <div className="flex items-center justify-between mb-2 px-1">
                                     <span className="text-xs font-bold text-gray-500">전체 메뉴 (랜덤)</span>
                                     <span className="text-[10px] text-gray-400">옆으로 넘겨보세요 👉</span>
                                 </div>
-                                
-                                {/* ★ [수정] 드래그 이벤트 연결 + 커서 스타일 추가 ★ */}
                                 <div 
                                     ref={sliderRef}
                                     onMouseDown={handleMouseDown}
@@ -420,12 +355,12 @@ export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, on
                                     className="flex overflow-x-auto gap-2 pb-2 -mx-1 px-1 snap-x snap-mandatory no-scrollbar cursor-grab active:cursor-grabbing"
                                 >
                                     {allMenusRandom.map((menu, i) => ( 
-                                        <div key={i} className="snap-start flex-shrink-0 w-[100px] bg-white border border-gray-100 rounded-xl p-3 flex flex-col justify-between shadow-sm min-h-[80px] select-none"> {/* select-none 추가하면 더 좋음 */}
+                                        <div key={i} className="snap-start flex-shrink-0 w-[120px] bg-white border border-gray-100 rounded-xl p-3 flex flex-col justify-between shadow-sm hover:border-blue-300 transition-colors min-h-[80px] select-none">
                                             <p className="font-medium text-xs text-gray-700 leading-tight line-clamp-2 mb-1">
                                                 {menu.name || menu.menu_name}
                                             </p>
-                                            <p className="text-[10px] text-gray-400 text-right">
-                                                {menu.price ? `${Number(menu.price).toLocaleString()}` : '-'}
+                                            <p className="text-[11px] text-gray-400 text-right">
+                                                {menu.price ? `${Number(menu.price).toLocaleString()}원` : '-'}
                                             </p>
                                         </div>
                                     ))}
@@ -435,8 +370,8 @@ export const RestAreaCard = ({ restArea, index, isFavorite, onToggleFavorite, on
                     </div>
                 )}
             </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

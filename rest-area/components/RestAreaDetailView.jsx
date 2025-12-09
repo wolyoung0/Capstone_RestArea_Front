@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, MapPin, Phone, Utensils, Info } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, Utensils, Info, Star } from 'lucide-react';
 import { SparklesIcon } from './icons/SparklesIcon'; // 기존 아이콘 재사용
 
 const parseRestAreaName = (fullName) => {
@@ -58,135 +58,143 @@ const amenityLabels = {
 export const RestAreaDetailView = ({ restArea, onBack }) => {
   // 실제 앱에서는 여기서 restAreaId로 상세 API를 한 번 더 호출해서
   // 더 많은 정보(전체 메뉴 리스트 등)를 가져오기도 합니다.
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
   
   // 데이터 안전장치
   const amenities = restArea.amenities || restArea.facilities || [];
   const foodMenus = restArea.foodMenus || [];
-
   const { baseName, directionName } = parseRestAreaName(restArea.name);
 
+  const heroImage = restArea.imageUrl || "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=2000";
+
   return (
-    <div className="bg-white min-h-screen animate-in fade-in slide-in-from-right duration-300">
+    <div className="bg-white min-h-screen animate-in fade-in slide-in-from-bottom-10 duration-500">
       
-      {/* 1. 상단 헤더 (뒤로가기 + 제목) */}
-      <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 py-4 flex items-center gap-3">
+      {/* 1. 히어로 이미지 영역 (상단 배경) */}
+      <div className="relative h-64 md:h-80 w-full">
+        <img 
+            src={heroImage} 
+            alt={baseName} 
+            className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+        
+        {/* 뒤로가기 버튼 (이미지 위) */}
         <button 
             onClick={onBack}
-            className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors"
+            className="absolute top-4 left-4 p-2 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/40 transition-colors"
         >
-            <ArrowLeft className="w-6 h-6 text-gray-700" />
+            <ArrowLeft className="w-6 h-6" />
         </button>
-        
-        {/* ★ [수정됨] 이름과 방향을 분리해서 스타일링 ★ */}
-        <h1 className="text-xl font-bold text-gray-900 truncate flex-1 flex items-baseline gap-1.5">
-            {baseName}
-            {directionName && (
-                <span className="text-base font-normal text-gray-500">
-                    {directionName}
-                </span>
-            )}
-        </h1>
-      </div>
 
-      <div className="p-5 space-y-8 pb-20">
-        
-        {/* 2. 기본 정보 섹션 */}
-        <section>
-            <div className="flex items-baseline gap-2 mb-2">
-                <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-bold rounded-md">
+        {/* 타이틀 정보 (이미지 하단) */}
+        <div className="absolute bottom-0 left-0 w-full p-6 text-white">
+             <div className="container mx-auto max-w-4xl">
+                <span className="px-2 py-1 bg-blue-600 text-xs font-bold rounded-md mb-2 inline-block">
                     {restArea.routeName}
                 </span>
-                <span className="text-gray-500 text-sm">
-                    {/* 방향 정보 파싱 로직이 필요하다면 여기에 적용 */}
-                    {restArea.direction ? `${restArea.direction} 방향` : ''}
-                </span>
-            </div>
-            
-            {/* 주소 및 전화번호 (데이터가 있다면 표시) */}
-            <div className="space-y-2 mt-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                <h1 className="text-3xl md:text-4xl font-extrabold flex items-end gap-2 text-shadow-lg">
+                    {baseName}
+                    {directionName && <span className="text-xl font-normal opacity-80 mb-1">{directionName}</span>}
+                </h1>
+             </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto max-w-4xl p-6 -mt-6 relative z-10">
+        
+        {/* 2. 정보 카드 */}
+        <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 mb-8 flex flex-col md:flex-row gap-6">
+             <div className="flex-1 space-y-3">
                 <div className="flex items-start gap-3">
-                    <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
-                    <p className="text-sm text-gray-600 leading-snug">
-                        {restArea.address || "주소 정보가 없습니다."}
-                    </p>
+                    <MapPin className="w-5 h-5 text-blue-500 mt-0.5" />
+                    <p className="text-gray-600 leading-snug">{restArea.address || "주소 정보 없음"}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Phone className="w-5 h-5 text-gray-400" />
-                    <p className="text-sm text-gray-600">
-                        {restArea.tel || "전화번호 정보 없음"}
-                    </p>
+                    <Phone className="w-5 h-5 text-blue-500" />
+                    <p className="text-gray-600">{restArea.tel || "전화번호 없음"}</p>
                 </div>
-            </div>
-        </section>
-
-        {/* 3. 편의시설 섹션 */}
-        <section>
-            <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-                <Info className="w-5 h-5 text-blue-500" />
-                편의시설
-            </h3>
-            <div className="flex flex-wrap gap-2">
-                {amenities.length > 0 ? (
-                    amenities.map((amenity, idx) => (
-                        <div 
-                            key={idx} 
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold border flex items-center gap-1 ${amenityColors[amenity] || 'bg-gray-100 text-gray-600 border-gray-200'}`}
-                        >
-                            {/* 아이콘이 있다면 여기에 추가 가능 */}
-                            {amenityLabels[amenity] || amenity}
-                        </div>
-                    ))
-                ) : (
-                    <p className="text-sm text-gray-400">등록된 편의시설 정보가 없습니다.</p>
-                )}
-            </div>
-        </section>
-
-        {/* 4. 대표 메뉴 (Ex-Food) */}
-        {restArea.bestMenuName && (
-             <section>
-                <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-                    <SparklesIcon className="w-5 h-5 text-yellow-500" />
-                    이 휴게소 대표 메뉴
+             </div>
+             
+             {/* 편의시설 */}
+             <div className="flex-1">
+                <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-2">
+                    <Info className="w-4 h-4 text-blue-500"/> 편의시설
                 </h3>
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-5 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 bg-blue-500 text-white text-[10px] px-3 py-1 rounded-bl-xl font-bold">
-                        EX-FOOD
+                <div className="flex flex-wrap gap-2">
+                    {amenities.map((amenity, idx) => (
+                        <span key={idx} className="px-2 py-1 bg-gray-100 rounded-md text-xs font-bold text-gray-600">
+                            {amenity}
+                        </span>
+                    ))}
+                </div>
+             </div>
+        </div>
+
+        {/* 3. 대표 메뉴 (EX-FOOD) */}
+        {restArea.bestMenuName && (
+             <section className="mb-8">
+                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <SparklesIcon className="w-6 h-6 text-yellow-500" /> 이 휴게소 대표 메뉴
+                </h3>
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-6 relative overflow-hidden flex items-center gap-6">
+                    {/* 대표 메뉴 이미지 (없으면 아이콘) */}
+                    <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-md flex-shrink-0 overflow-hidden">
+                        {/* 백엔드에서 bestMenuImage도 보내준다고 가정, 없으면 아이콘 */}
+                        <Utensils className="w-10 h-10 text-blue-300" />
                     </div>
-                    <h4 className="text-xl font-extrabold text-gray-900 mb-1">
-                        {restArea.bestMenuName}
-                    </h4>
-                    <p className="text-blue-600 font-bold text-sm mb-3">
-                        {restArea.bestMenuPrice ? `${Number(restArea.bestMenuPrice).toLocaleString()}원` : '가격 정보 없음'}
-                    </p>
-                    <p className="text-sm text-gray-600 bg-white/60 p-3 rounded-lg leading-relaxed">
-                        {restArea.recommendationReason || "휴게소장 강력 추천 메뉴입니다!"}
-                    </p>
+                    
+                    <div className="flex-1">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <span className="text-blue-600 font-extrabold text-xs tracking-wider mb-1 block">PREMIUM EX-FOOD</span>
+                                <h4 className="text-2xl font-extrabold text-gray-900 mb-1">{restArea.bestMenuName}</h4>
+                            </div>
+                            <span className="text-xl font-bold text-blue-600">
+                                {restArea.bestMenuPrice ? `${Number(restArea.bestMenuPrice).toLocaleString()}원` : ''}
+                            </span>
+                        </div>
+                        <p className="text-gray-600 mt-2 text-sm leading-relaxed bg-white/60 p-3 rounded-lg border border-blue-100/50">
+                            {restArea.recommendationReason || "휴게소장이 강력 추천하는 실패 없는 메뉴입니다!"}
+                        </p>
+                    </div>
                 </div>
              </section>
         )}
 
-        {/* 5. 전체 메뉴 리스트 */}
+        {/* 4. 전체 메뉴 리스트 (이미지 썸네일 포함) */}
         <section>
-            <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-                <Utensils className="w-5 h-5 text-gray-500" />
-                전체 메뉴
+            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <Utensils className="w-5 h-5 text-gray-400" /> 전체 메뉴
             </h3>
-            <div className="grid grid-cols-1 divide-y divide-gray-100 border border-gray-100 rounded-xl bg-white">
-                {foodMenus.length > 0 ? (
-                    foodMenus.map((menu, idx) => (
-                        <div key={idx} className="p-4 flex justify-between items-center hover:bg-gray-50 transition-colors">
-                            <span className="text-gray-700 font-medium">{menu.name || menu.menuName}</span>
-                            <span className="text-gray-900 font-bold text-sm">
-                                {menu.price ? `${Number(menu.price).toLocaleString()}원` : '-'}
-                            </span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {foodMenus.map((menu, idx) => (
+                    <div key={idx} className="bg-white p-4 rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all flex items-center gap-4">
+                        {/* 메뉴 썸네일 (랜덤 이미지 예시) */}
+                        <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
+                            <img 
+                                src={menu.imageUrl || `https://source.unsplash.com/random/100x100?food&sig=${idx}`} 
+                                alt={menu.name} 
+                                className="w-full h-full object-cover"
+                                onError={(e) => {e.target.style.display='none'}} // 이미지 깨지면 숨김
+                            />
                         </div>
-                    ))
-                ) : (
-                    <div className="p-6 text-center text-gray-400 text-sm">
-                        메뉴 정보가 준비되지 않았습니다.
+                        <div className="flex-1">
+                            <h5 className="font-bold text-gray-800 text-sm mb-1">{menu.name}</h5>
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm font-bold text-gray-500">
+                                    {menu.price ? `${Number(menu.price).toLocaleString()}원` : '-'}
+                                </span>
+                                {menu.isPremium && (
+                                    <span className="text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-bold">Best</span>
+                                )}
+                            </div>
+                        </div>
                     </div>
-                )}
+                ))}
             </div>
         </section>
 
