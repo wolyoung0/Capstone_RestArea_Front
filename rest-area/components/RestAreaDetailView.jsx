@@ -171,34 +171,27 @@ export const RestAreaDetailView = ({ restArea, onBack }) => {
             <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <Utensils className="w-5 h-5 text-gray-400" /> 전체 메뉴
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {foodMenus.map((menu, idx) => (
-                    <div key={idx} className="bg-white p-4 rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all flex items-center gap-4">
-                        {/* 메뉴 썸네일 (랜덤 이미지 예시) */}
-                        <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
-                            <img 
-                                src={menu.imageUrl || `https://source.unsplash.com/random/100x100?food&sig=${idx}`} 
-                                alt={menu.name} 
-                                className="w-full h-full object-cover"
-                                onError={(e) => { e.target.src = fallbackImage; }} // 이미지 깨지면 숨김
-                            />
+                    <div key={idx} className="bg-white p-4 rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all flex justify-between items-center">
+                        {/* 이미지 영역 삭제함 */}
+                        
+                        {/* 왼쪽: 메뉴 이름 */}
+                        <div className="flex items-center gap-2">
+                            <h5 className="font-bold text-gray-800 text-sm">{menu.name}</h5>
+                            {menu.isPremium && (
+                                <span className="text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-bold shrink-0">Best</span>
+                            )}
                         </div>
-                        <div className="flex-1">
-                            <h5 className="font-bold text-gray-800 text-sm mb-1">{menu.name}</h5>
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm font-bold text-gray-500">
-                                    {menu.price ? `${Number(menu.price).toLocaleString()}원` : '-'}
-                                </span>
-                                {menu.isPremium && (
-                                    <span className="text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-bold">Best</span>
-                                )}
-                            </div>
-                        </div>
+
+                        {/* 오른쪽: 가격 */}
+                        <span className="text-sm font-bold text-blue-600">
+                            {menu.price ? `${Number(menu.price).toLocaleString()}원` : '-'}
+                        </span>
                     </div>
                 ))}
             </div>
         </section>
-
       </div>
     </div>
   );
